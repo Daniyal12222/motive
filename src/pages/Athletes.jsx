@@ -1,14 +1,24 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, Button, Paper, Typography, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, Grid,
-  MenuItem, Select, InputLabel, FormControl
+  MenuItem, Select, InputLabel, FormControl, Avatar
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, FilterList as FilterIcon } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
+import athlete1 from '../assets/athlete/athlete1.webp';
+import athlete2 from '../assets/athlete/athlete2.jpg';
+import athlete3 from '../assets/athlete/athlete3.jpg';
+import athlete4 from '../assets/athlete/athlete4.jpg';
+import athlete5 from '../assets/athlete/athlete5.jpg';
+import athlete6 from '../assets/athlete/athlete6.jpg';
+import athlete7 from '../assets/athlete/athlete7.jpg';
+import athlete8 from '../assets/athlete/athlete8.jpg';
 
 function Athletes() {
+  const navigate = useNavigate();
   const { athletes, setAthletes, schools } = useAppContext();
   const [open, setOpen] = useState(false);
   const [editAthlete, setEditAthlete] = useState(null);
@@ -16,7 +26,6 @@ function Athletes() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    age: '',
     sport: '',
     schoolId: ''
   });
@@ -31,7 +40,6 @@ function Athletes() {
     setFormData({
       name: '',
       email: '',
-      age: '',
       sport: '',
       schoolId: ''
     });
@@ -59,7 +67,6 @@ function Athletes() {
     setFormData({
       name: athlete.name,
       email: athlete.email,
-      age: athlete.age,
       sport: athlete.sport,
       schoolId: athlete.schoolId || ''
     });
@@ -77,8 +84,7 @@ function Athletes() {
     e.preventDefault();
     
     const athleteData = {
-      ...formData,
-      age: parseInt(formData.age, 10) || 0
+      ...formData
     };
     
     if (editAthlete) {
@@ -108,43 +114,65 @@ function Athletes() {
     return school ? school.name : 'Unknown School';
   };
 
+  // Navigate to athlete detail page when clicking on a row
+  const handleRowClick = (athleteId) => {
+    navigate(`/athlete/${athleteId}`);
+  };
+
+  // Get athlete profile image
+  const getAthleteImage = (id) => {
+    // Use modulo to cycle through available images
+    const imageIndex = (id % 8) + 1;
+    switch(imageIndex) {
+      case 1: return athlete1;
+      case 2: return athlete2;
+      case 3: return athlete3;
+      case 4: return athlete4;
+      case 5: return athlete5;
+      case 6: return athlete6;
+      case 7: return athlete7;
+      case 8: return athlete8;
+      default: return athlete1;
+    }
+  };
+
   return (
     <div>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Athletes</Typography>
-        <Button 
-          variant="contained" 
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-        >
-          Add Athlete
-        </Button>
+        
       </Box>
 
       {/* School Filter */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <FilterIcon sx={{ mr: 2, color: 'text.secondary' }} />
-          <FormControl sx={{ width: 300 }}>
-            <InputLabel id="school-filter-label">Filter by School</InputLabel>
-            <Select
-              labelId="school-filter-label"
-              id="school-filter"
-              value={selectedSchool}
-              label="Filter by School"
-              onChange={handleSchoolFilterChange}
-              displayEmpty
-            >
-              <MenuItem value="">
-                <em>All Schools</em>
-              </MenuItem>
-              {schools.map((school) => (
-                <MenuItem key={school.id} value={school.id}>
-                  {school.name}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: "space-between" }}>
+          <div className='flex items-center'>
+            <FilterIcon sx={{ mr: 2, color: 'text.secondary' }} />
+            <FormControl sx={{ width: 300 }}>
+              <Select
+                id="school-filter"
+                value={selectedSchool}
+                
+                onChange={handleSchoolFilterChange}
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>All Schools</em>
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                {schools.map((school) => (
+                  <MenuItem key={school.id} value={school.id}>
+                    {school.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+          <Button 
+            variant="contained" 
+            startIcon={<AddIcon />}
+            onClick={handleOpen}
+          >
+            Add Athlete
+          </Button>
         </Box>
       </Paper>
 
@@ -155,34 +183,29 @@ function Athletes() {
               <TableCell>ID</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
-              <TableCell>Age</TableCell>
               <TableCell>Sport</TableCell>
               <TableCell>School</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Profile</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredAthletes.map((athlete) => (
-              <TableRow key={athlete.id}>
+              <TableRow 
+                key={athlete.id}
+                onClick={() => handleRowClick(athlete.id)}
+                sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' } }}
+              >
                 <TableCell>{athlete.id}</TableCell>
                 <TableCell>{athlete.name}</TableCell>
                 <TableCell>{athlete.email}</TableCell>
-                <TableCell>{athlete.age}</TableCell>
                 <TableCell>{athlete.sport}</TableCell>
                 <TableCell>{getSchoolName(athlete.schoolId)}</TableCell>
                 <TableCell>
-                  <IconButton 
-                    color="primary" 
-                    onClick={() => handleEditClick(athlete)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton 
-                    color="error" 
-                    onClick={() => handleDeleteClick(athlete.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Avatar 
+                    src={getAthleteImage(athlete.id)} 
+                    alt={athlete.name}
+                    sx={{ width: 50, height: 50 }}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -223,20 +246,7 @@ function Athletes() {
                   required
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="dense"
-                  name="age"
-                  label="Age"
-                  type="number"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.age}
-                  onChange={handleChange}
-                  inputProps={{ min: 0 }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <TextField
                   margin="dense"
                   name="sport"

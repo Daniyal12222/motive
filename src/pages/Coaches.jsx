@@ -1,14 +1,20 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, Button, Paper, Typography, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, Grid,
-  MenuItem, Select, InputLabel, FormControl
+  MenuItem, Select, InputLabel, FormControl, Avatar
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, FilterList as FilterIcon } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
+import basketballImg from '../assets/basketball.jpg';
+import soccerImg from '../assets/soccer.jpg';
+import trackImg from '../assets/track.jpg';
+import swimmingImg from '../assets/swimming.png';
 
 function Coaches() {
+  const navigate = useNavigate();
   const { coaches, setCoaches, schools } = useAppContext();
   const [open, setOpen] = useState(false);
   const [editCoach, setEditCoach] = useState(null);
@@ -103,33 +109,40 @@ function Coaches() {
     return school ? school.name : 'Unknown School';
   };
 
+  // Get profile image based on specialty
+  const getProfileImage = (specialty) => {
+    const lowerSpecialty = specialty?.toLowerCase() || '';
+    if (lowerSpecialty.includes('basketball')) return basketballImg;
+    if (lowerSpecialty.includes('soccer') || lowerSpecialty.includes('football')) return soccerImg;
+    if (lowerSpecialty.includes('track') || lowerSpecialty.includes('running')) return trackImg;
+    if (lowerSpecialty.includes('swim')) return swimmingImg;
+    // Default image if no match
+    return basketballImg;
+  };
+
+  // Navigate to coach detail page when clicking on a row
+  const handleRowClick = (coachId) => {
+    navigate(`/coach/${coachId}`);
+  };
+
   return (
     <div>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Coaches</Typography>
-        <Button 
-          variant="contained" 
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-        >
-          Add Coach
-        </Button>
+        
       </Box>
 
       {/* School Filter */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' , justifyContent: "space-between" }}>
+          <div className='flex items-center' >
           <FilterIcon sx={{ mr: 2, color: 'text.secondary' }} />
           <FormControl sx={{ width: 300 }}>
-            <InputLabel id="school-filter-label">Filter by School</InputLabel>
             <Select
-              labelId="school-filter-label"
               id="school-filter"
               value={selectedSchool}
-              label="Filter by School"
               onChange={handleSchoolFilterChange}
               displayEmpty
-            >
+              >
               <MenuItem value="">
                 <em>All Schools</em>
               </MenuItem>
@@ -140,6 +153,14 @@ function Coaches() {
               ))}
             </Select>
           </FormControl>
+              </div>
+          <Button 
+          variant="contained" 
+          startIcon={<AddIcon />}
+          onClick={handleOpen}
+        >
+          Add Coach
+        </Button>
         </Box>
       </Paper>
 
@@ -151,14 +172,18 @@ function Coaches() {
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Phone</TableCell>
-              <TableCell>Specialty</TableCell>
+              <TableCell>Sport</TableCell>
               <TableCell>School</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Profile</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredCoaches.map((coach) => (
-              <TableRow key={coach.id}>
+              <TableRow 
+                key={coach.id}
+                onClick={() => handleRowClick(coach.id)}
+                sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' } }}
+              >
                 <TableCell>{coach.id}</TableCell>
                 <TableCell>{coach.name}</TableCell>
                 <TableCell>{coach.email}</TableCell>
@@ -166,18 +191,11 @@ function Coaches() {
                 <TableCell>{coach.specialty}</TableCell>
                 <TableCell>{getSchoolName(coach.schoolId)}</TableCell>
                 <TableCell>
-                  <IconButton 
-                    color="primary" 
-                    onClick={() => handleEditClick(coach)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton 
-                    color="error" 
-                    onClick={() => handleDeleteClick(coach.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Avatar 
+                    src={getProfileImage(coach.specialty)} 
+                    alt={coach.specialty}
+                    sx={{ width: 50, height: 50 }}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -244,13 +262,10 @@ function Coaches() {
               </Grid>
               <Grid item xs={12}>
                 <FormControl fullWidth margin="dense">
-                  <InputLabel id="school-select-label">School</InputLabel>
                   <Select
-                    labelId="school-select-label"
                     id="school-select"
                     name="schoolId"
                     value={formData.schoolId}
-                    label="School"
                     onChange={handleChange}
                   >
                     <MenuItem value="">

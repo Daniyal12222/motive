@@ -176,9 +176,9 @@ function Dashboard() {
 
   return (
     <div>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
+      <div className='w-full '>
+
+      </div>
       
       {/* School Selector - Moved to top */}
       <Paper sx={{ p: 3, mb: 4 }}>

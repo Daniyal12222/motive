@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, Button, Paper, Typography, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Dialog,
@@ -6,10 +7,18 @@ import {
   Select, MenuItem, FormControl, InputLabel, Chip, ListItem,
   ListItemText, List, Checkbox, FormControlLabel
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Group as GroupIcon, FilterList as FilterIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Edit as EditIcon, 
+  Delete as DeleteIcon, 
+  Group as GroupIcon, 
+  FilterList as FilterIcon,
+  Visibility as VisibilityIcon
+} from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
 function Groups() {
+  const navigate = useNavigate();
   const { groups, setGroups, coaches, athletes, schools } = useAppContext();
   const [open, setOpen] = useState(false);
   const [editGroup, setEditGroup] = useState(null);
@@ -130,16 +139,21 @@ function Groups() {
     return coach ? coach.name : 'Unknown Coach';
   };
 
+  // Navigate to group detail page
+  const handleViewGroupDetail = (groupId) => {
+    navigate(`/group/${groupId}`);
+  };
+
   return (
     <div>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Groups</Typography>
+        <Typography variant="h4">Teams</Typography>
         <Button 
           variant="contained" 
           startIcon={<AddIcon />}
           onClick={handleOpen}
         >
-          Add Group
+          Add Teams
         </Button>
       </Box>
 
@@ -148,12 +162,9 @@ function Groups() {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <FilterIcon sx={{ mr: 2, color: 'text.secondary' }} />
           <FormControl sx={{ width: 300 }}>
-            <InputLabel id="school-filter-label">Filter by School</InputLabel>
             <Select
-              labelId="school-filter-label"
               id="school-filter"
               value={selectedSchool}
-              label="Filter by School"
               onChange={handleSchoolFilterChange}
               displayEmpty
             >
@@ -202,13 +213,22 @@ function Groups() {
                 <TableCell>
                   <IconButton 
                     color="primary" 
+                    onClick={() => handleViewGroupDetail(group.id)}
+                    title="View Group Details"
+                  >
+                    <VisibilityIcon />
+                  </IconButton>
+                  <IconButton 
+                    color="secondary" 
                     onClick={() => handleEditClick(group)}
+                    title="Edit Group"
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton 
                     color="error" 
                     onClick={() => handleDeleteClick(group.id)}
+                    title="Delete Group"
                   >
                     <DeleteIcon />
                   </IconButton>

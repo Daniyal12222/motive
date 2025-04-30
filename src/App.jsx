@@ -10,6 +10,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Coaches from './pages/Coaches';
+import CoachDetail from './pages/CoachDetail';
 import Athletes from './pages/Athletes';
 import Groups from './pages/Groups';
 import Events from './pages/Events';
@@ -121,6 +122,7 @@ function AppContent() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="coaches" element={<Coaches />} />
+          <Route path="coach/:id" element={<CoachDetail />} />
           <Route path="athletes" element={<Athletes />} />
           <Route path="groups" element={<Groups />} />
           <Route path="events" element={<Events />} />

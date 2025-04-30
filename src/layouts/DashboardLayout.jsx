@@ -59,7 +59,7 @@ function DashboardLayout() {
       path: '/athletes' 
     },
     { 
-      text: 'Groups', 
+      text: 'Teams', 
       icon: <GroupIcon />, 
       path: '/groups' 
     },
@@ -70,11 +70,15 @@ function DashboardLayout() {
     },
   ];
 
+  // Find active page name
+  const activeMenuItem = menuItems.find(item => item.path === location.pathname);
+  const activePageName = activeMenuItem ? activeMenuItem.text : 'Dashboard';
+
   const drawer = (
     <div className="h-full bg-white dark:bg-gray-800">
       <Toolbar className="border-b">
         <Typography variant="h6" noWrap component="div" className="flex-grow font-medium">
-          One Motive
+          Motive
         </Typography>
       </Toolbar>
       <List className="py-2">
@@ -121,7 +125,6 @@ function DashboardLayout() {
             '& .MuiDrawer-paper': { 
               boxSizing: 'border-box', 
               width: 240,
-              borderRight: '1px solid',
               borderColor: 'divider'
             },
           }}
@@ -135,7 +138,6 @@ function DashboardLayout() {
             '& .MuiDrawer-paper': { 
               boxSizing: 'border-box', 
               width: 240,
-              borderRight: '1px solid',
               borderColor: 'divider',
               boxShadow: 1
             },
@@ -147,7 +149,7 @@ function DashboardLayout() {
       </Box>
       <Box 
         component="main" 
-        className="flex-1 flex flex-col overflow-hidden"
+        className="flex-1 flex flex-col overflow-hidden "
         sx={{ ml: { sm: '240px' } }}
       >
         <AppBar
@@ -156,7 +158,8 @@ function DashboardLayout() {
           className="z-40 bg-white shadow-sm dark:bg-gray-800 text-gray-800 dark:text-white"
           elevation={0}
         >
-          <Toolbar className="px-4">
+          <Toolbar className="px-4 flex justify-between">
+            <Box component="div" className=' flex justify-center items-center'>
             <IconButton
               color="inherit"
               aria-label="open drawer"
@@ -164,11 +167,12 @@ function DashboardLayout() {
               onClick={handleDrawerToggle}
               className="mr-4 text-gray-600 dark:text-gray-200 sm:hidden"
             >
-              <MenuIcon />
+              <MenuIcon className='md:!hidden' />
             </IconButton>
-            <Typography variant="h6" noWrap component="div" className="flex-grow font-medium">
-              Admin Dashboard
+            <Typography variant="h6" noWrap component="div" className="font-medium text-center">
+              {activePageName}
             </Typography>
+            </Box>
             <Box className="flex items-center">
               <Tooltip title="Open user menu">
                 <IconButton onClick={handleOpenUserMenu} className="p-1">
