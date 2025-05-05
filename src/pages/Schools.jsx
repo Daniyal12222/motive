@@ -136,6 +136,20 @@ function Schools() {
     return groups.filter(group => coachIds.includes(group.coachId)).length;
   };
 
+  // Get total athletes count for a school
+  const getSchoolAthletesCount = (schoolId) => {
+    const schoolCoaches = coaches.filter(coach => coach.schoolId === schoolId);
+    const coachIds = schoolCoaches.map(coach => coach.id);
+    const schoolGroups = groups.filter(group => coachIds.includes(group.coachId));
+
+    let totalAthletes = 0;
+    for (const group of schoolGroups) {
+      totalAthletes += group.athletes?.length || 0;
+    }
+
+    return totalAthletes;
+  };
+
   // Navigate to school detail page when clicking on a row
   const handleRowClick = (schoolId) => {
     navigate(`/school/${schoolId}`);
@@ -222,6 +236,7 @@ function Schools() {
               <TableCell>Contact</TableCell>
               <TableCell>Coaches</TableCell>
               <TableCell>Teams</TableCell>
+              <TableCell>Athletes</TableCell> {/* New Column */}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -301,6 +316,15 @@ function Schools() {
                       label={getSchoolGroupsCount(school.id)}
                       size="small"
                       color="secondary"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      icon={<PersonIcon />} 
+                      label={getSchoolAthletesCount(school.id)}
+                      size="small"
+                      color="success"
                       variant="outlined"
                     />
                   </TableCell>
@@ -422,7 +446,7 @@ function Schools() {
                   }}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12}>
                 <TextField
                   name="phone"
                   label="Phone"
@@ -431,25 +455,24 @@ function Schools() {
                   fullWidth
                   margin="normal"
                   variant="outlined"
-                  helperText="Format: (123) 456-7890"
-                  placeholder="(555) 123-4567"
+                  helperText="Phone number"
+                  placeholder="(123) 456-7890"
                   InputProps={{
                     sx: { borderRadius: 1.5 }
                   }}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12}>
                 <TextField
                   name="email"
                   label="Email"
-                  type="email"
                   value={formData.email}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
                   variant="outlined"
-                  helperText="School contact email"
-                  placeholder="info@westview.edu"
+                  helperText="Email address"
+                  placeholder="example@school.com"
                   InputProps={{
                     sx: { borderRadius: 1.5 }
                   }}
@@ -457,36 +480,15 @@ function Schools() {
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
-            <Button 
-              onClick={handleClose} 
-              variant="outlined"
-              sx={{ 
-                px: 3, 
-                borderRadius: 6,
-                color: 'text.secondary',
-                borderColor: 'text.secondary',
-                '&:hover': {
-                  borderColor: 'text.primary',
-                  bgcolor: 'rgba(0,0,0,0.03)'
-                }
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSubmit} 
-              variant="contained" 
-              sx={{ 
-                px: 4, 
-                borderRadius: 6,
-                bgcolor: '#1C7293',
-                '&:hover': {
-                  bgcolor: '#14576F'
-                }
-              }}
-            >
-              {editSchool ? 'Update' : 'Add'}
+          <DialogActions sx={{ 
+            bgcolor: '#f7f7f7', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            py: 2 
+          }}>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button type="submit" variant="contained" color="primary">
+              {editSchool ? 'Save Changes' : 'Add School'}
             </Button>
           </DialogActions>
         </form>
@@ -495,4 +497,4 @@ function Schools() {
   );
 }
 
-export default Schools; 
+export default Schools;

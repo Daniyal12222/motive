@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   AppBar, Box, CssBaseline, Divider, Drawer, IconButton, 
   List, ListItem, ListItemButton, ListItemIcon, ListItemText, 
-  Toolbar, Typography, Avatar, Menu, MenuItem, Tooltip
+  Toolbar, Typography, Avatar, Menu, MenuItem, Tooltip , Button
 } from '@mui/material';
 import { 
   Menu as MenuIcon, 
@@ -25,8 +25,10 @@ function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  
+
   // Check if the current route is a detail page
-  const isDetailPage = location.pathname.startsWith('/coach/') || location.pathname.startsWith('/athlete/');
+  const isDetailPage = location.pathname.startsWith('/coach/') || location.pathname.startsWith('/athlete/') || location.pathname.startsWith('/group/') || location.pathname.startsWith('/school/') || location.pathname.startsWith('/profile');
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -206,7 +208,7 @@ function DashboardLayout() {
                 onClose={handleCloseUserMenu}
               >
                 <MenuItem onClick={handleCloseUserMenu} className="min-w-[180px]">
-                  <Typography className="text-gray-700">Profile</Typography>
+                  <Button className="!text-gray-700 " onClick={()=>{navigate("/profile")}}>Profile</Button>
                 </MenuItem>
                 <MenuItem onClick={handleLogout} className="min-w-[180px]">
                   <ListItemIcon className="text-gray-600">

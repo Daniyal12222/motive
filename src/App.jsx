@@ -15,7 +15,10 @@ import Athletes from './pages/Athletes';
 import AthleteDetail from './pages/AthleteDetail';
 import Groups from './pages/Groups';
 import Schools from './pages/Schools';
-
+import GroupDetail from './pages/teamsDetail';
+import SchoolDetail from './pages/schoolDetail';
+import Profile from './pages/profile';
+import ForgotPassword from './pages/forgetPassword';
 // Context
 import { AppProvider, useAppContext } from './context/AppContext';
 
@@ -122,12 +125,16 @@ function AppContent() {
         }>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="coaches" element={<Coaches />} />
           <Route path="coach/:id" element={<CoachDetail />} />
           <Route path="athletes" element={<Athletes />} />
           <Route path="athlete/:id" element={<AthleteDetail />} />
           <Route path="groups" element={<Groups />} />
+          <Route path="/group/:groupId" element={<GroupDetail />} />
           <Route path="schools" element={<Schools />} />
+          <Route path="/school/:schoolId" element={<SchoolDetail/>} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />
