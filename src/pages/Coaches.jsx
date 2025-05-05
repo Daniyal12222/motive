@@ -4,7 +4,7 @@ import {
   Box, Button, Paper, Typography, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, Grid,
-  MenuItem, Select, InputLabel, FormControl, Avatar
+  MenuItem, Select, InputLabel, FormControl, Avatar, FormHelperText
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, FilterList as FilterIcon } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
@@ -12,6 +12,17 @@ import basketballImg from '../assets/basketball.jpg';
 import soccerImg from '../assets/soccer.jpg';
 import trackImg from '../assets/track.jpg';
 import swimmingImg from '../assets/swimming.png';
+
+// Import sport icons for dropdown
+import basketballIcon from '../assets/sportIcon/basketball.png';
+import soccerIcon from '../assets/sportIcon/soccer.png';
+import trackIcon from '../assets/sportIcon/track-and-field.png';
+import swimmingIcon from '../assets/sportIcon/swimming.png';
+import baseballIcon from '../assets/sportIcon/baseball.png';
+import footballIcon from '../assets/sportIcon/american-football.png';
+import golfIcon from '../assets/sportIcon/golf.png';
+import badmintonIcon from '../assets/sportIcon/badminton.png';
+import hockeyIcon from '../assets/sportIcon/hockey.png';
 
 function Coaches() {
   const navigate = useNavigate();
@@ -24,8 +35,22 @@ function Coaches() {
     email: '',
     phone: '',
     specialty: '',
-    schoolId: ''
+    schoolId: '',
+    profileImage: null
   });
+
+  // Sports options for the specialty dropdown
+  const sportOptions = [
+    { name: 'Basketball', icon: basketballIcon },
+    { name: 'Soccer', icon: soccerIcon },
+    { name: 'Football', icon: footballIcon },
+    { name: 'Track & Field', icon: trackIcon },
+    { name: 'Swimming', icon: swimmingIcon },
+    { name: 'Baseball', icon: baseballIcon },
+    { name: 'Golf', icon: golfIcon },
+    { name: 'Hockey', icon: hockeyIcon },
+    { name: 'Badminton', icon: badmintonIcon }
+  ];
 
   const handleOpen = () => {
     setOpen(true);
@@ -39,7 +64,8 @@ function Coaches() {
       email: '',
       phone: '',
       specialty: '',
-      schoolId: ''
+      schoolId: '',
+      profileImage: null
     });
   };
 
@@ -48,6 +74,13 @@ function Coaches() {
     setFormData({
       ...formData,
       [name]: value
+    });
+  };
+
+  const handleFileChange = (e) => {
+    setFormData({
+      ...formData,
+      profileImage: e.target.files[0]
     });
   };
 
@@ -67,7 +100,8 @@ function Coaches() {
       email: coach.email,
       phone: coach.phone,
       specialty: coach.specialty,
-      schoolId: coach.schoolId || ''
+      schoolId: coach.schoolId || '',
+      profileImage: coach.profileImage || null
     });
     setOpen(true);
   };
@@ -109,13 +143,22 @@ function Coaches() {
     return school ? school.name : 'Unknown School';
   };
 
-  // Get profile image based on specialty
-  const getProfileImage = (specialty) => {
-    const lowerSpecialty = specialty?.toLowerCase() || '';
-    if (lowerSpecialty.includes('basketball')) return basketballImg;
-    if (lowerSpecialty.includes('soccer') || lowerSpecialty.includes('football')) return soccerImg;
-    if (lowerSpecialty.includes('track') || lowerSpecialty.includes('running')) return trackImg;
-    if (lowerSpecialty.includes('swim')) return swimmingImg;
+  // Get profile image based on specialty or uploaded image
+  const getProfileImage = (coach) => {
+    if (coach.profileImage) {
+      return URL.createObjectURL(coach.profileImage);
+    }
+    
+    const specialty = coach.specialty?.toLowerCase() || '';
+    if (specialty.includes('basketball')) return basketballImg;
+    if (specialty.includes('soccer')) return soccerImg;
+    if (specialty.includes('football')) return footballIcon;
+    if (specialty.includes('track') || specialty.includes('running')) return trackImg;
+    if (specialty.includes('swim')) return swimmingImg;
+    if (specialty.includes('baseball')) return baseballIcon;
+    if (specialty.includes('golf')) return golfIcon;
+    if (specialty.includes('hockey')) return hockeyIcon;
+    if (specialty.includes('badminton')) return badmintonIcon;
     // Default image if no match
     return basketballImg;
   };
@@ -155,6 +198,7 @@ function Coaches() {
           </FormControl>
               </div>
           <Button 
+          className='!bg-[#1C7293] !text-white'
           variant="contained" 
           startIcon={<AddIcon />}
           onClick={handleOpen}
@@ -164,17 +208,16 @@ function Coaches() {
         </Box>
       </Paper>
 
+      {/* Coaches Table */}
       <TableContainer component={Paper}>
-        <Table>
+        <Table sx={{ minWidth: 650 }} aria-label="coaches table">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
+              <TableCell>Coach</TableCell>
               <TableCell>Sport</TableCell>
               <TableCell>School</TableCell>
-              <TableCell>Profile</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Phone</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -182,21 +225,27 @@ function Coaches() {
               <TableRow 
                 key={coach.id}
                 onClick={() => handleRowClick(coach.id)}
-                sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' } }}
+                sx={{ 
+                  '&:hover': { 
+                    bgcolor: 'rgba(0, 0, 0, 0.04)',
+                    cursor: 'pointer'
+                  } 
+                }}
               >
-                <TableCell>{coach.id}</TableCell>
-                <TableCell>{coach.name}</TableCell>
-                <TableCell>{coach.email}</TableCell>
-                <TableCell>{coach.phone}</TableCell>
+                <TableCell component="th" scope="row">
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar 
+                      src={getProfileImage(coach)} 
+                      alt={coach.name} 
+                      sx={{ mr: 2, width: 40, height: 40 }}
+                    />
+                    {coach.name}
+                  </Box>
+                </TableCell>
                 <TableCell>{coach.specialty}</TableCell>
                 <TableCell>{getSchoolName(coach.schoolId)}</TableCell>
-                <TableCell>
-                  <Avatar 
-                    src={getProfileImage(coach.specialty)} 
-                    alt={coach.specialty}
-                    sx={{ width: 50, height: 50 }}
-                  />
-                </TableCell>
+                <TableCell>{coach.email}</TableCell>
+                <TableCell>{coach.phone}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -205,11 +254,17 @@ function Coaches() {
 
       {/* Add/Edit Coach Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editCoach ? 'Edit Coach' : 'Add New Coach'}</DialogTitle>
+        <DialogTitle sx={{ textAlign: 'center', bgcolor: '#1C7293', color: 'white' }}>{editCoach ? 'Edit Coach' : 'Add New Coach'}</DialogTitle>
         <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
+          <DialogContent sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center',
+            justifyContent: 'center',
+            px: 4 
+          }}>
+            <Grid container spacing={2} sx={{ maxWidth: '95%' }}>
+              <Grid item xs={12} sx={{width: '48%'}}>
                 <TextField
                   autoFocus
                   margin="dense"
@@ -221,9 +276,14 @@ function Coaches() {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  helperText="Enter the coach's full name"
+                  placeholder="John Doe"
+                  InputProps={{
+                    sx: { borderRadius: 1.5 }
+                  }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sx={{width: '48%'}}>
                 <TextField
                   margin="dense"
                   name="email"
@@ -234,9 +294,14 @@ function Coaches() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  helperText="Enter a valid email address"
+                  placeholder="coach@example.com"
+                  InputProps={{
+                    sx: { borderRadius: 1.5 }
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{width: '48%'}}>
                 <TextField
                   margin="dense"
                   name="phone"
@@ -246,27 +311,55 @@ function Coaches() {
                   variant="outlined"
                   value={formData.phone}
                   onChange={handleChange}
+                  helperText="Format: (123) 456-7890"
+                  placeholder="(123) 456-7890"
+                  InputProps={{
+                    sx: { borderRadius: 1.5 }
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="dense"
-                  name="specialty"
-                  label="Specialty"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.specialty}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6} sx={{width: '48%'}}>
                 <FormControl fullWidth margin="dense">
+                  <InputLabel id="specialty-label">Specialty</InputLabel>
                   <Select
+                    labelId="specialty-label"
+                    id="specialty-select"
+                    name="specialty"
+                    value={formData.specialty}
+                    onChange={handleChange}
+                    label="Specialty"
+                    sx={{ borderRadius: 1.5 }}
+                  >
+                    <MenuItem value="">
+                      <em>Select a sport</em>
+                    </MenuItem>
+                    {sportOptions.map((sport) => (
+                      <MenuItem key={sport.name} value={sport.name}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <img 
+                            src={sport.icon} 
+                            alt={sport.name} 
+                            style={{ width: 24, height: 24 }} 
+                          />
+                          {sport.name}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>Select the coach's specialty sport</FormHelperText>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sx={{width: '100%'}}>
+                <FormControl fullWidth margin="dense">
+                  <InputLabel id="school-label">School</InputLabel>
+                  <Select
+                    labelId="school-label"
                     id="school-select"
                     name="schoolId"
                     value={formData.schoolId}
                     onChange={handleChange}
+                    label="School"
+                    sx={{ borderRadius: 1.5 }}
                   >
                     <MenuItem value="">
                       <em>None</em>
@@ -277,13 +370,122 @@ function Coaches() {
                       </MenuItem>
                     ))}
                   </Select>
+                  <FormHelperText>Assign the coach to a school (optional)</FormHelperText>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sx={{ width: '100%' }}>
+                <FormControl fullWidth margin="dense">
+                  <Typography variant="subtitle1" gutterBottom>
+                    Profile Image
+                  </Typography>
+                  <Box 
+                    sx={{ 
+                      border: '2px dashed #ccc', 
+                      borderRadius: 2, 
+                      p: 3, 
+                      textAlign: 'center',
+                      transition: 'all 0.3s',
+                      bgcolor: 'rgba(0,0,0,0.02)',
+                      '&:hover': {
+                        borderColor: '#1C7293',
+                        bgcolor: 'rgba(28,114,147,0.05)'
+                      },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    {formData.profileImage ? (
+                      <Box sx={{ mb: 2 }}>
+                        <Avatar 
+                          src={URL.createObjectURL(formData.profileImage)} 
+                          alt="Preview"
+                          sx={{ width: 100, height: 100, mb: 1, boxShadow: 1 }}
+                        />
+                        <Typography variant="body2" color="primary">
+                          {formData.profileImage.name}
+                        </Typography>
+                        <Button 
+                          size="small" 
+                          sx={{ mt: 1 }}
+                          onClick={() => setFormData({...formData, profileImage: null})}
+                          color="error"
+                        >
+                          Remove
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Avatar 
+                        sx={{ 
+                          width: 60, 
+                          height: 60, 
+                          mb: 2, 
+                          bgcolor: 'rgba(28,114,147,0.2)',
+                          color: '#1C7293'
+                        }}
+                      >
+                        <AddIcon fontSize="large" />
+                      </Avatar>
+                    )}
+                    
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      sx={{ 
+                        mb: 1,
+                        borderRadius: 6,
+                        px: 2
+                      }}
+                    >
+                      {formData.profileImage ? 'Change Image' : 'Choose Image'}
+                      <input
+                        accept="image/*"
+                        type="file"
+                        hidden
+                        onChange={handleFileChange}
+                      />
+                    </Button>
+                    <FormHelperText>
+                      Upload a profile image (optional) - JPEG, PNG (max 5MB)
+                    </FormHelperText>
+                  </Box>
                 </FormControl>
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit" variant="contained">{editCoach ? 'Update' : 'Add'}</Button>
+          <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
+            <Button 
+              onClick={handleClose} 
+              variant="outlined"
+              sx={{ 
+                px: 3, 
+                borderRadius: 6,
+                color: 'text.secondary',
+                borderColor: 'text.secondary',
+                '&:hover': {
+                  borderColor: 'text.primary',
+                  bgcolor: 'rgba(0,0,0,0.03)'
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              sx={{ 
+                px: 4, 
+                borderRadius: 6,
+                bgcolor: '#1C7293',
+                '&:hover': {
+                  bgcolor: '#14576F'
+                }
+              }}
+            >
+              {editCoach ? 'Update' : 'Add'}
+            </Button>
           </DialogActions>
         </form>
       </Dialog>

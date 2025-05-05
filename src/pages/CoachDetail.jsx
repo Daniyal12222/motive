@@ -7,6 +7,7 @@ import {
   TableHead, TableRow, Tabs, Tab, Accordion, AccordionSummary,
   AccordionDetails
 } from '@mui/material';
+
 import {
   ArrowBack as ArrowBackIcon,
   Email as EmailIcon,
@@ -143,19 +144,20 @@ function CoachDetail() {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
       <Button 
+        className='!text-[#1C7293] !text-lg'
         startIcon={<ArrowBackIcon />} 
         onClick={() => navigate('/coaches')}
         sx={{ mb: 2 }}
       >
-        Back to Coaches
+        Back
       </Button>
 
       {/* Coach Profile Card */}
       <Card elevation={3} sx={{ mb: 4 }}>
         <CardContent sx={{ p: 3 }}>
           <Grid container>
-            <Grid item xs={12} md={8}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2  , justifyContent : "space-between" , width : "69vw"}} >
+            <Grid item xs={12} md={8} sx={{width : "100%"}}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2  , justifyContent : "space-between" , width : "100%"}} >
                 <Box>
                   <Typography variant="h4" gutterBottom>{coach.name}</Typography>
                   <Typography variant="h6" color="primary">
@@ -194,7 +196,7 @@ function CoachDetail() {
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <Chip 
                   icon={<GroupIcon />} 
-                  label={`${coachGroups.length} Groups`} 
+                  label={`${coachGroups.length} Teams`} 
                   color="primary" 
                   variant="outlined"
                 />
@@ -220,7 +222,7 @@ function CoachDetail() {
       <Paper elevation={2} sx={{ mb: 4 }}>
         <Box sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Groups coached by {coach.name} ({coachGroups.length})
+            Teams coached by {coach.name} ({coachGroups.length})
           </Typography>
           
           {coachGroups.length > 0 ? (
@@ -254,9 +256,6 @@ function CoachDetail() {
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography variant="body1" paragraph>
-                    {group.description || 'No description available'}
-                  </Typography>
                   
                   {/* Athletes Section */}
                   <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
@@ -458,7 +457,7 @@ function CoachDetail() {
                     </Box>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
-                      No events scheduled for this group
+                      No events scheduled for this teams
                     </Typography>
                   )}
                 </AccordionDetails>

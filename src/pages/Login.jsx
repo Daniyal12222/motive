@@ -40,7 +40,7 @@ function Login() {
             <LockOutlined />
           </Avatar>
           <Typography component="h1" variant="h5">
-            One Motive Admin
+           Motive
           </Typography>
           {error && (
             <Alert severity="error" className="w-full mt-4">

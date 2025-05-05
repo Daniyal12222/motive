@@ -3,13 +3,17 @@ import {
   Grid, Paper, Typography, Box, FormControl, InputLabel, Select, 
   MenuItem, Dialog, DialogTitle, DialogContent, 
   DialogActions, Button, List, ListItem, 
-  ListItemText
+  ListItemText, TextField, Avatar, IconButton
 } from '@mui/material';
 import { 
   Group as GroupIcon, 
   Person as PersonIcon, 
   Event as EventIcon,
-  People as PeopleIcon
+  People as PeopleIcon,
+  Add as AddIcon,
+  PhotoCamera as PhotoCameraIcon,
+  Delete as DeleteIcon,
+  Check as CheckIcon
 } from '@mui/icons-material';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
@@ -37,7 +41,22 @@ ChartJS.register(
 
 function Dashboard() {
   const { coaches, athletes, groups, events, schools, setCoaches, setAthletes, setGroups, setEvents, setSchools } = useAppContext();
-  const [selectedSchool, setSelectedSchool] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState(1);
+  const [openCoachDialog, setOpenCoachDialog] = useState(false);
+  const [currentCoach, setCurrentCoach] = useState({
+    id: null,
+    name: '',
+    email: '',
+    phone: '',
+    specialty: '',
+    schoolId: 1,
+    bio: '',
+    certifications: [],
+    achievements: [],
+    profileImage: ''
+  });
+  const [newCertification, setNewCertification] = useState('');
+  const [newAchievement, setNewAchievement] = useState('');
 
   // Load mock data
   useEffect(() => {
@@ -174,12 +193,84 @@ function Dashboard() {
     },
   };
 
-  return (
-    <div>
-      <div className='w-full '>
+  // Handle coach dialog open
+  const handleOpenCoachDialog = (coach = null) => {
+    if (coach) {
+      setCurrentCoach(coach);
+    } else {
+      setCurrentCoach({
+        id: null,
+        name: '',
+        email: '',
+        phone: '',
+        specialty: '',
+        schoolId: selectedSchool,
+        bio: '',
+        certifications: [],
+        achievements: [],
+        profileImage: ''
+      });
+    }
+    setOpenCoachDialog(true);
+  };
 
-      </div>
-      
+  // Handle coach dialog close
+  const handleCloseCoachDialog = () => {
+    setOpenCoachDialog(false);
+  };
+
+  // Handle coach form submission
+  const handleCoachSubmit = () => {
+    if (currentCoach.id) {
+      // Update existing coach
+      const updatedCoaches = coaches.map(coach => 
+        coach.id === currentCoach.id ? currentCoach : coach
+      );
+      setCoaches(updatedCoaches);
+    } else {
+      // Add new coach with a new ID
+      const newCoach = {
+        ...currentCoach,
+        id: Math.max(0, ...coaches.map(c => c.id)) + 1
+      };
+      setCoaches([...coaches, newCoach]);
+    }
+    handleCloseCoachDialog();
+  };
+
+  // Handle coach form field changes
+  const handleCoachChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentCoach({
+      ...currentCoach,
+      [name]: value
+    });
+  };
+
+  // Handle adding certifications
+  const handleAddCertification = () => {
+    if (newCertification.trim()) {
+      setCurrentCoach({
+        ...currentCoach,
+        certifications: [...currentCoach.certifications, newCertification.trim()]
+      });
+      setNewCertification('');
+    }
+  };
+
+  // Handle adding achievements
+  const handleAddAchievement = () => {
+    if (newAchievement.trim()) {
+      setCurrentCoach({
+        ...currentCoach,
+        achievements: [...currentCoach.achievements, newAchievement.trim()]
+      });
+      setNewAchievement('');
+    }
+  };
+
+  return (
+    <div >
       {/* School Selector - Moved to top */}
       <Paper sx={{ p: 3, mb: 4 }}>
         <FormControl fullWidth>
@@ -204,7 +295,7 @@ function Dashboard() {
       </Paper>
       
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center', alignItems: 'center' , bgcolor: 'white', borderRadius : '10px' , p: 2}}>
         <Grid item xs={12} sm={6} md={3}>
           <Paper 
             elevation={3} 
@@ -337,6 +428,224 @@ function Dashboard() {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Coach Dialog */}
+      <Dialog open={openCoachDialog} onClose={handleCloseCoachDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{currentCoach.id ? 'Edit Coach Profile' : 'Add New Coach'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={3}>
+            {/* Profile Image Section */}
+            <Grid item xs={12} sm={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 3 }}>
+              <Avatar 
+                src={currentCoach.profileImage || '/placeholder-avatar.png'} 
+                sx={{ width: 150, height: 150, mb: 2 }}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<PhotoCameraIcon />}
+                  color={currentCoach.profileImage ? "success" : "primary"}
+                >
+                  {currentCoach.profileImage ? "Change Photo" : "Upload Photo"}
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          setCurrentCoach({
+                            ...currentCoach,
+                            profileImage: event.target.result
+                          });
+                        };
+                        reader.readAsDataURL(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </Button>
+                {currentCoach.profileImage && (
+                  <IconButton 
+                    color="error" 
+                    onClick={() => setCurrentCoach({...currentCoach, profileImage: ''})}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                )}
+              </Box>
+              {currentCoach.profileImage && (
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <CheckIcon color="success" fontSize="small" />
+                  <Typography variant="caption" color="success.main" sx={{ ml: 0.5 }}>
+                    Photo selected
+                  </Typography>
+                </Box>
+              )}
+            </Grid>
+
+            {/* Basic Info Section */}
+            <Grid item xs={12} sm={8}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    label="Full Name"
+                    name="name"
+                    value={currentCoach.name}
+                    onChange={handleCoachChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    required
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={currentCoach.email}
+                    onChange={handleCoachChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Phone"
+                    name="phone"
+                    value={currentCoach.phone}
+                    onChange={handleCoachChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Specialty"
+                    name="specialty"
+                    value={currentCoach.specialty}
+                    onChange={handleCoachChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>School</InputLabel>
+                    <Select
+                      name="schoolId"
+                      value={currentCoach.schoolId}
+                      label="School"
+                      onChange={handleCoachChange}
+                    >
+                      {schools.map((school) => (
+                        <MenuItem key={school.id} value={school.id}>
+                          {school.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Grid>
+
+            {/* Bio Section */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Biography"
+                name="bio"
+                multiline
+                rows={4}
+                value={currentCoach.bio}
+                onChange={handleCoachChange}
+              />
+            </Grid>
+
+            {/* Certifications Section */}
+            <Grid item xs={12} sm={6}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Certifications</Typography>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={newCertification}
+                  onChange={(e) => setNewCertification(e.target.value)}
+                  placeholder="Add certification"
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={handleAddCertification}
+                  sx={{ ml: 1 }}
+                >
+                  Add
+                </Button>
+              </Box>
+              <List dense>
+                {currentCoach.certifications.map((cert, index) => (
+                  <ListItem key={index}>
+                    <ListItemText primary={cert} />
+                    <IconButton
+                      edge="end"
+                      onClick={() => {
+                        setCurrentCoach({
+                          ...currentCoach,
+                          certifications: currentCoach.certifications.filter((_, i) => i !== index)
+                        });
+                      }}
+                    >
+                      <DeleteIcon color="error" fontSize="small" />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Grid>
+
+            {/* Achievements Section */}
+            <Grid item xs={12} sm={6}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Achievements</Typography>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={newAchievement}
+                  onChange={(e) => setNewAchievement(e.target.value)}
+                  placeholder="Add achievement"
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={handleAddAchievement}
+                  sx={{ ml: 1 }}
+                >
+                  Add
+                </Button>
+              </Box>
+              <List dense>
+                {currentCoach.achievements.map((achievement, index) => (
+                  <ListItem key={index}>
+                    <ListItemText primary={achievement} />
+                    <IconButton
+                      edge="end"
+                      onClick={() => {
+                        setCurrentCoach({
+                          ...currentCoach,
+                          achievements: currentCoach.achievements.filter((_, i) => i !== index)
+                        });
+                      }}
+                    >
+                      <DeleteIcon color="error" fontSize="small" />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCoachDialog}>Cancel</Button>
+          <Button onClick={handleCoachSubmit} variant="contained" color="primary">
+            {currentCoach.id ? 'Update' : 'Add'} Coach
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

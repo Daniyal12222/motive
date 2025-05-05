@@ -12,8 +12,9 @@ import Dashboard from './pages/Dashboard';
 import Coaches from './pages/Coaches';
 import CoachDetail from './pages/CoachDetail';
 import Athletes from './pages/Athletes';
+import AthleteDetail from './pages/AthleteDetail';
 import Groups from './pages/Groups';
-import Events from './pages/Events';
+import Schools from './pages/Schools';
 
 // Context
 import { AppProvider, useAppContext } from './context/AppContext';
@@ -124,8 +125,9 @@ function AppContent() {
           <Route path="coaches" element={<Coaches />} />
           <Route path="coach/:id" element={<CoachDetail />} />
           <Route path="athletes" element={<Athletes />} />
+          <Route path="athlete/:id" element={<AthleteDetail />} />
           <Route path="groups" element={<Groups />} />
-          <Route path="events" element={<Events />} />
+          <Route path="schools" element={<Schools />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

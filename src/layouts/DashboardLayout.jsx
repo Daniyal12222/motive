@@ -15,6 +15,7 @@ import {
   School as SchoolIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
 import { useAppContext } from '../context/AppContext';
 
 function DashboardLayout() {
@@ -23,6 +24,9 @@ function DashboardLayout() {
   const { user, logout } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Check if the current route is a detail page
+  const isDetailPage = location.pathname.startsWith('/coach/') || location.pathname.startsWith('/athlete/');
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -60,23 +64,23 @@ function DashboardLayout() {
     },
     { 
       text: 'Teams', 
-      icon: <GroupIcon />, 
+      icon: <Diversity3Icon />, 
       path: '/groups' 
     },
     { 
-      text: 'Events', 
-      icon: <EventIcon />, 
-      path: '/events' 
+      text: 'Schools', 
+      icon: <SchoolIcon />, 
+      path: '/schools' 
     },
   ];
 
   // Find active page name
   const activeMenuItem = menuItems.find(item => item.path === location.pathname);
-  const activePageName = activeMenuItem ? activeMenuItem.text : 'Dashboard';
+  const activePageName = activeMenuItem ? activeMenuItem.text : 'Motive';
 
   const drawer = (
-    <div className="h-full bg-white dark:bg-gray-800">
-      <Toolbar className="border-b">
+    <div className="h-full bg-[#1C7293] text-white">
+      <Toolbar className="">
         <Typography variant="h6" noWrap component="div" className="flex-grow font-medium">
           Motive
         </Typography>
@@ -88,14 +92,14 @@ function DashboardLayout() {
               component={Link} 
               to={item.path}
               selected={location.pathname === item.path}
-              className={`rounded-lg transition-colors ${location.pathname === item.path ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-700/30'}`}
+              className={`rounded-lg transition-colors ${location.pathname === item.path ? '!bg-[#065A82] !rounded text-white' : 'hover:bg-[#1A6480] text-white'}`}
             >
-              <ListItemIcon className={location.pathname === item.path ? 'text-blue-600 dark:text-blue-400' : ''}>
+              <ListItemIcon className="!text-white">
                 {item.icon}
               </ListItemIcon>
               <ListItemText 
                 primary={item.text} 
-                className={location.pathname === item.path ? 'text-blue-600 dark:text-blue-400' : ''}
+                className="text-white"
               />
             </ListItemButton>
           </ListItem>
@@ -105,57 +109,59 @@ function DashboardLayout() {
   );
 
   return (
-    <Box className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <Box className="flex h-screen   dark:bg-gray-900">
       <CssBaseline />
-      <Box 
-        component="nav"
-        className="fixed z-30 h-full"
-        sx={{ width: { xs: 0, sm: 240 } }}
-        aria-label="dashboard navigation"
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true,
-          }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
-              width: 240,
-              borderColor: 'divider'
-            },
-          }}
+      {!isDetailPage && (
+        <Box 
+          component="nav"
+          className="fixed z-30 h-full"
+          sx={{ width: { xs: 0, sm: 240 } }}
+          aria-label="dashboard navigation"
         >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
-              width: 240,
-              borderColor: 'divider',
-              boxShadow: 1
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true,
+            }}
+            sx={{
+              display: { xs: 'block', sm: 'none' },
+              '& .MuiDrawer-paper': { 
+                boxSizing: 'border-box', 
+                width: 240,
+                borderColor: 'divider'
+              },
+            }}
+          >
+            {drawer}
+          </Drawer>
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              '& .MuiDrawer-paper': { 
+                boxSizing: 'border-box', 
+                width: 240,
+                borderColor: 'divider',
+                boxShadow: 1
+              },
+            }}
+            open
+          >
+            {drawer}
+          </Drawer>
+        </Box>
+      )}
       <Box 
         component="main" 
         className="flex-1 flex flex-col overflow-hidden "
-        sx={{ ml: { sm: '240px' } }}
+        sx={{ ml: isDetailPage ? 0 : { sm: '240px' } }}
       >
         <AppBar
           position="sticky"
           color="inherit"
-          className="z-40 bg-white shadow-sm dark:bg-gray-800 text-gray-800 dark:text-white"
+          className="z-40 !bg-[#1C7293] shadow-sm text-white"
           elevation={0}
         >
           <Toolbar className="px-4 flex justify-between">
@@ -165,17 +171,17 @@ function DashboardLayout() {
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              className="mr-4 text-gray-600 dark:text-gray-200 sm:hidden"
+              className="mr-4 text-white sm:hidden"
             >
               <MenuIcon className='md:!hidden' />
             </IconButton>
-            <Typography variant="h6" noWrap component="div" className="font-medium text-center">
+            <Typography variant="h6" noWrap component="div" className="font-medium text-center text-white">
               {activePageName}
             </Typography>
             </Box>
             <Box className="flex items-center">
               <Tooltip title="Open user menu">
-                <IconButton onClick={handleOpenUserMenu} className="p-1">
+                <IconButton onClick={handleOpenUserMenu} className="p-1 text-white">
                   <Avatar 
                     alt={user?.name || 'User'} 
                     src="/static/images/avatar/1.jpg" 
@@ -200,20 +206,20 @@ function DashboardLayout() {
                 onClose={handleCloseUserMenu}
               >
                 <MenuItem onClick={handleCloseUserMenu} className="min-w-[180px]">
-                  <Typography className="text-gray-700 dark:text-gray-200">Profile</Typography>
+                  <Typography className="text-gray-700">Profile</Typography>
                 </MenuItem>
                 <MenuItem onClick={handleLogout} className="min-w-[180px]">
-                  <ListItemIcon className="text-gray-600 dark:text-gray-300">
+                  <ListItemIcon className="text-gray-600">
                     <LogoutIcon fontSize="small" />
                   </ListItemIcon>
-                  <Typography className="text-gray-700 dark:text-gray-200">Logout</Typography>
+                  <Typography className="text-gray-700">Logout</Typography>
                 </MenuItem>
               </Menu>
             </Box>
           </Toolbar>
         </AppBar>
-        <Box className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
+        <Box className="flex-1 overflow-y-auto p-6 bg-[#9EB3C2]">
+          <div className="max-w-7xl py-3 mx-auto bg-white rounded">
             <Outlet />
           </div>
         </Box>
