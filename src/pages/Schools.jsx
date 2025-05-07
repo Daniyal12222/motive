@@ -15,7 +15,8 @@ import {
   Person as PersonIcon,
   FilterList as FilterIcon,
   Search as SearchIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  Event as EventIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
@@ -150,6 +151,12 @@ function Schools() {
     return totalAthletes;
   };
 
+  // Get events count for a school (placeholder function)
+  const getSchoolEventsCount = (schoolId) => {
+    // Replace with actual events counting logic when available
+    return 0; // Default to 0 until you implement event tracking
+  };
+
   // Navigate to school detail page when clicking on a row
   const handleRowClick = (schoolId) => {
     navigate(`/school/${schoolId}`);
@@ -236,13 +243,14 @@ function Schools() {
               <TableCell>Contact</TableCell>
               <TableCell>Coaches</TableCell>
               <TableCell>Teams</TableCell>
-              <TableCell>Athletes</TableCell> {/* New Column */}
+              <TableCell>Athletes</TableCell>
+              <TableCell>Events</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredSchools.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   <Typography variant="body1" sx={{ py: 2 }}>
                     No schools found. Add your first school!
                   </Typography>
@@ -325,6 +333,15 @@ function Schools() {
                       label={getSchoolAthletesCount(school.id)}
                       size="small"
                       color="success"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      icon={<EventIcon />} 
+                      label={getSchoolEventsCount(school.id)}
+                      size="small"
+                      color="info"
                       variant="outlined"
                     />
                   </TableCell>

@@ -5,7 +5,9 @@ import {
   Divider, List, ListItem, ListItemText, Card, CardContent,
   CardHeader, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Tabs, Tab, Accordion, AccordionSummary,
-  AccordionDetails
+  AccordionDetails, TextField, Dialog, DialogActions, DialogContent,
+  DialogTitle, IconButton, FormControl, InputLabel, Select, MenuItem,
+  FormHelperText
 } from '@mui/material';
 
 import {
@@ -20,7 +22,11 @@ import {
   AccessTime as TimeIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  SportsSoccer as SportsIcon
+  SportsSoccer as SportsIcon,
+  Description as DescriptionIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
@@ -66,10 +72,23 @@ function TabPanel({ children, value, index, ...other }) {
 function AthleteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { athletes, schools, groups, coaches, events } = useAppContext();
+  const { athletes, schools, groups, coaches, events, updateAthlete } = useAppContext();
   const [athlete, setAthlete] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [expandedEvents, setExpandedEvents] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    schoolId: '',
+    coachId: '',
+    sport: '',
+    bio: ''
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [formTouched, setFormTouched] = useState({});
+  const [saveAttempted, setSaveAttempted] = useState(false);
 
   useEffect(() => {
     // Find the athlete by ID
@@ -77,6 +96,15 @@ function AthleteDetail() {
     const foundAthlete = athletes.find(a => a.id === athleteId);
     if (foundAthlete) {
       setAthlete(foundAthlete);
+      setEditForm({
+        name: foundAthlete.name || '',
+        email: foundAthlete.email || '',
+        phone: foundAthlete.phone || '',
+        schoolId: foundAthlete.schoolId || '',
+        coachId: foundAthlete.coachId || '',
+        sport: foundAthlete.sport || '',
+        bio: foundAthlete.bio || ''
+      });
     }
   }, [id, athletes]);
 
@@ -89,6 +117,109 @@ function AthleteDetail() {
       ...prev,
       [eventId]: !prev[eventId]
     }));
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Mark field as touched
+    setFormTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+
+    // Clear error when typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // Name validation
+    if (!editForm.name.trim()) {
+      errors.name = 'Name is required';
+    }
+    
+    // Email validation
+    if (!editForm.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(editForm.email)) {
+      errors.email = 'Email is invalid';
+    }
+    
+    // Phone validation (optional but must be valid if provided)
+    if (editForm.phone && !/^[0-9\-\(\)\s\+]{10,15}$/.test(editForm.phone.replace(/\s/g, ''))) {
+      errors.phone = 'Please enter a valid phone number';
+    }
+    
+    // Sport validation
+    if (!editForm.sport) {
+      errors.sport = 'Please select a sport';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleEditSubmit = () => {
+    setSaveAttempted(true);
+    
+    // Mark all fields as touched
+    const allTouched = Object.keys(editForm).reduce((acc, key) => {
+      acc[key] = true;
+      return acc;
+    }, {});
+    setFormTouched(allTouched);
+    
+    const isValid = validateForm();
+    
+    if (isValid && athlete) {
+      const updatedAthlete = {
+        ...athlete,
+        ...editForm
+      };
+      updateAthlete(updatedAthlete);
+      setAthlete(updatedAthlete);
+      setIsEditing(false);
+      setSaveAttempted(false);
+      
+      // Reset touched state
+      setFormTouched({});
+    }
+  };
+
+  const toggleEditMode = () => {
+    if (isEditing) {
+      // Reset form to original values if canceling
+      setEditForm({
+        name: athlete.name || '',
+        email: athlete.email || '',
+        phone: athlete.phone || '',
+        schoolId: athlete.schoolId || '',
+        coachId: athlete.coachId || '',
+        sport: athlete.sport || '',
+        bio: athlete.bio || ''
+      });
+      // Clear errors and touched state
+      setFormErrors({});
+      setFormTouched({});
+      setSaveAttempted(false);
+    }
+    setIsEditing(!isEditing);
+  };
+
+  // Helper function to determine if a field has an error
+  const hasError = (fieldName) => {
+    return (formTouched[fieldName] || saveAttempted) && !!formErrors[fieldName];
   };
 
   // Helper functions
@@ -174,14 +305,23 @@ function AthleteDetail() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
-      <Button 
-        className='!text-[#1C7293] !text-lg'
-        startIcon={<ArrowBackIcon />} 
-        onClick={() => navigate('/athletes')}
-        sx={{ mb: 2 }}
-      >
-        Back
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Button 
+          className='!text-[#1C7293] !text-lg'
+          startIcon={<ArrowBackIcon />} 
+          onClick={() => navigate('/athletes')}
+        >
+          Back
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={isEditing ? <CloseIcon /> : <EditIcon />}
+          onClick={toggleEditMode}
+        >
+          {isEditing ? 'Cancel' : 'Edit Athlete'}
+        </Button>
+      </Box>
 
       {/* Athlete Profile Card */}
       <Card elevation={3} sx={{ mb: 4 }}>
@@ -253,6 +393,356 @@ function AthleteDetail() {
         </CardContent>
       </Card>
 
+      {/* Athlete Edit Dialog */}
+      <Dialog 
+        open={isEditing} 
+        onClose={(event, reason) => {
+          if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
+            toggleEditMode();
+          }
+        }}
+        fullWidth
+        maxWidth="md"
+        PaperProps={{
+          sx: {
+            borderRadius: '12px',
+            overflow: 'hidden',
+            width: '100%',
+            maxWidth: '700px'
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            background: 'linear-gradient(to right, #1C7293, #065a82)', 
+            color: 'white',
+            p: 2
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <EditIcon sx={{ mr: 1.5 }} />
+              <Typography variant="h6" component="span" sx={{ fontWeight: 'bold' }}>
+                Edit Athlete Profile
+              </Typography>
+            </Box>
+            <IconButton 
+              onClick={toggleEditMode} 
+              sx={{ color: 'white' }}
+              aria-label="Close dialog"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 3, bgcolor: 'rgba(28, 114, 147, 0.03)' }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item>
+                <Avatar 
+                  src={getAthleteImage(athlete.id)}
+                  alt={athlete.name}
+                  sx={{ width: 60, height: 60 }}
+                />
+              </Grid>
+              <Grid item xs>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                  {athlete.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  ID: {athlete.id}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
+          
+          <Box sx={{ px: 3, py: 2 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: '100%' }}>
+                  <TextField
+                    name="name"
+                    label="Full Name *"
+                    value={editForm.name}
+                    onChange={handleEditChange}
+                    fullWidth
+                    variant="outlined"
+                    required
+                    error={hasError('name')}
+                    helperText={hasError('name') ? formErrors.name : ' '}
+                    InputProps={{
+                      startAdornment: (
+                        <PersonIcon color={hasError('name') ? "error" : "action"} sx={{ mr: 1 }} />
+                      ),
+                      sx: { height: '40px' }
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused': {
+                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
+                        },
+                      },
+                    }}
+                    size="small"
+                  />
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: '100%' }}>
+                  <TextField
+                    name="email"
+                    label="Email Address *"
+                    type="email"
+                    value={editForm.email}
+                    onChange={handleEditChange}
+                    fullWidth
+                    variant="outlined"
+                    required
+                    error={hasError('email')}
+                    helperText={hasError('email') ? formErrors.email : 'We will never share your email'}
+                    InputProps={{
+                      startAdornment: (
+                        <EmailIcon color={hasError('email') ? "error" : "action"} sx={{ mr: 1 }} />
+                      ),
+                      sx: { height: '40px' }
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused': {
+                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
+                        },
+                      },
+                    }}
+                    size="small"
+                  />
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: '100%' }}>
+                  <TextField
+                    name="phone"
+                    label="Phone Number"
+                    value={editForm.phone}
+                    onChange={handleEditChange}
+                    fullWidth
+                    variant="outlined"
+                    error={hasError('phone')}
+                    helperText={hasError('phone') ? formErrors.phone : 'Format: (123) 456-7890'}
+                    InputProps={{
+                      startAdornment: (
+                        <PhoneIcon color={hasError('phone') ? "error" : "action"} sx={{ mr: 1 }} />
+                      ),
+                      sx: { height: '40px' }
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused': {
+                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
+                        },
+                      },
+                    }}
+                    size="small"
+                  />
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: '100%' }}>
+                  <FormControl 
+                    fullWidth 
+                    variant="outlined"
+                    error={hasError('sport')}
+                    required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused': {
+                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
+                        },
+                        '& .MuiSelect-select': {
+                          height: '6px', // Adjust height to match text inputs
+                          display: 'flex',
+                          alignItems: 'center',
+                        }
+                      },
+                    }}
+                    size="small"
+                  >
+                    <InputLabel id="sport-select-label">Sport *</InputLabel>
+                    <Select
+                      labelId="sport-select-label"
+                      id="sport-select"
+                      name="sport"
+                      value={editForm.sport}
+                      onChange={handleEditChange}
+                      label="Sport *"
+                      startAdornment={
+                        <SportsIcon color={hasError('sport') ? "error" : "action"} sx={{ mr: 1 }} />
+                      }
+                    >
+                      <MenuItem value=""><em>Select a sport</em></MenuItem>
+                      <MenuItem value="Basketball">Basketball</MenuItem>
+                      <MenuItem value="Soccer">Soccer</MenuItem>
+                      <MenuItem value="Track & Field">Track & Field</MenuItem>
+                      <MenuItem value="Swimming">Swimming</MenuItem>
+                      <MenuItem value="Baseball">Baseball</MenuItem>
+                      <MenuItem value="Football">Football</MenuItem>
+                      <MenuItem value="Golf">Golf</MenuItem>
+                      <MenuItem value="Hockey">Hockey</MenuItem>
+                      <MenuItem value="Badminton">Badminton</MenuItem>
+                    </Select>
+                    {hasError('sport') ? (
+                      <FormHelperText error>{formErrors.sport}</FormHelperText>
+                    ) : (
+                      <FormHelperText> </FormHelperText>
+                    )}
+                  </FormControl>
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: '100%' }}>
+                  <FormControl 
+                    fullWidth 
+                    variant="outlined"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused': {
+                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
+                        },
+                        '& .MuiSelect-select': {
+                          height: '6px', // Adjust height to match text inputs
+                          display: 'flex',
+                          alignItems: 'center',
+                        }
+                      },
+                    }}
+                    size="small"
+                  >
+                    <InputLabel id="school-select-label">School</InputLabel>
+                    <Select
+                      labelId="school-select-label"
+                      id="school-select"
+                      name="schoolId"
+                      value={editForm.schoolId}
+                      onChange={handleEditChange}
+                      label="School"
+                      startAdornment={
+                        <SchoolIcon color="action" sx={{ mr: 1 }} />
+                      }
+                    >
+                      <MenuItem value=""><em>Not Assigned</em></MenuItem>
+                      {schools.map(school => (
+                        <MenuItem key={school.id} value={school.id}>{school.name}</MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText> </FormHelperText>
+                  </FormControl>
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: '100%' }}>
+                  <FormControl 
+                    fullWidth 
+                    variant="outlined"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused': {
+                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
+                        },
+                        '& .MuiSelect-select': {
+                          height: '6px', // Adjust height to match text inputs
+                          display: 'flex',
+                          alignItems: 'center',
+                        }
+                      },
+                    }}
+                    size="small"
+                  >
+                    <InputLabel id="coach-select-label">Coach</InputLabel>
+                    <Select
+                      labelId="coach-select-label"
+                      id="coach-select"
+                      name="coachId"
+                      value={editForm.coachId}
+                      onChange={handleEditChange}
+                      label="Coach"
+                      startAdornment={
+                        <PersonIcon color="action" sx={{ mr: 1 }} />
+                      }
+                    >
+                      <MenuItem value=""><em>Not Assigned</em></MenuItem>
+                      {coaches.map(coach => (
+                        <MenuItem key={coach.id} value={coach.id}>{coach.name}</MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText> </FormHelperText>
+                  </FormControl>
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  name="bio"
+                  label="Athlete Bio"
+                  value={editForm.bio}
+                  onChange={handleEditChange}
+                  fullWidth
+                  variant="outlined"
+                  multiline
+                  rows={3}
+                  placeholder="Enter a brief biography or notable achievements..."
+                  helperText="Add any relevant information about the athlete"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '&.Mui-focused': {
+                        boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
+                      },
+                    },
+                    mt: 1
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, bgcolor: 'rgba(0,0,0,0.02)', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+          <Typography variant="body2" color="textSecondary" sx={{ mr: 'auto', fontSize: '0.75rem' }}>
+            * Required fields
+          </Typography>
+          <Button 
+            onClick={toggleEditMode} 
+            color="inherit"
+            startIcon={<CloseIcon />}
+            sx={{ borderRadius: '8px' }}
+            size="small"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleEditSubmit} 
+            color="primary"
+            variant="contained"
+            startIcon={<SaveIcon />}
+            sx={{ 
+              px: 2, 
+              borderRadius: '8px',
+              background: 'linear-gradient(to right, #1C7293, #065a82)',
+              '&:hover': {
+                background: 'linear-gradient(to right, #065a82, #054c6a)',
+              }
+            }}
+            size="small"
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Tabs for different sections */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="athlete tabs">
@@ -291,6 +781,17 @@ function AthleteDetail() {
                 </Box>
                 
                 <List>
+                  <ListItem sx={{ py: 2 }}>
+                    <DescriptionIcon color="action" sx={{ mr: 2 }} />
+                    <ListItemText 
+                      primary="Bio" 
+                      secondary={athlete.bio || 'No bio information available.'}
+                      primaryTypographyProps={{ fontWeight: 'medium', color: 'text.secondary' }}
+                      secondaryTypographyProps={{ fontWeight: 'bold', color: 'text.primary', fontSize: '1rem' }}
+                    />
+                  </ListItem>
+                  <Divider variant="inset" component="li" sx={{ ml: 6 }} />
+                  
                   <ListItem sx={{ py: 2 }}>
                     <SchoolIcon color="action" sx={{ mr: 2 }} />
                     <ListItemText 
@@ -813,7 +1314,7 @@ function AthleteDetail() {
                                 
                                 <Grid item xs={6} md={2}>
                                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <TimeIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                                    <TimeIcon color="text.secondary" sx={{ mr: 1, fontSize: 20 }} />
                                     <Typography variant="body2" color="text.secondary">
                                       {event.startTime} - {event.endTime}
                                     </Typography>

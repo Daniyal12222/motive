@@ -41,7 +41,8 @@ function Athletes() {
     schoolId: '',
     profileImage: null,
     phone: '',
-    coachId: ''
+    coachId: '',
+    bio: ''
   });
 
   // Sports options for the sport dropdown
@@ -71,7 +72,8 @@ function Athletes() {
       schoolId: '',
       profileImage: null,
       phone: '',
-      coachId: ''
+      coachId: '',
+      bio: ''
     });
   };
 
@@ -108,7 +110,8 @@ function Athletes() {
       schoolId: athlete.schoolId || '',
       profileImage: athlete.profileImage || null,
       phone: athlete.phone || '',
-      coachId: athlete.coachId || ''
+      coachId: athlete.coachId || '',
+      bio: athlete.bio || ''
     });
     setOpen(true);
   };
@@ -231,7 +234,8 @@ function Athletes() {
         <Table sx={{ minWidth: 650 }} aria-label="athletes table">
           <TableHead>
             <TableRow>
-              <TableCell>Athlete</TableCell>
+              <TableCell>Profile</TableCell>
+              <TableCell>Name</TableCell>
               <TableCell>Sport</TableCell>
               <TableCell>School</TableCell>
               <TableCell>Coach</TableCell>
@@ -250,16 +254,14 @@ function Athletes() {
                   } 
                 }}
               >
-                <TableCell component="th" scope="row">
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar 
-                      src={athlete.profileImage || getAthleteImage(athlete.id)} 
-                      alt={athlete.name} 
-                      sx={{ mr: 2, width: 40, height: 40 }}
-                    />
-                    {athlete.name}
-                  </Box>
+                <TableCell>
+                  <Avatar 
+                    src={athlete.profileImage || getAthleteImage(athlete.id)} 
+                    alt={athlete.name} 
+                    sx={{ width: 40, height: 40 }}
+                  />
                 </TableCell>
+                <TableCell>{athlete.name}</TableCell>
                 <TableCell>{athlete.sport}</TableCell>
                 <TableCell>{getSchoolName(athlete.schoolId)}</TableCell>
                 <TableCell>{getCoachName(athlete.coachId)}</TableCell>
@@ -282,6 +284,95 @@ function Athletes() {
             px: 4 
           }}>
             <Grid container spacing={2} sx={{ maxWidth: '95%' }}>
+              <Grid item xs={12} sx={{ width: "100%" }}>
+                <FormControl fullWidth margin="dense">
+                  <Box 
+                    sx={{ 
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {formData.profileImage ? (
+                      <>
+                        <Avatar 
+                          src={URL.createObjectURL(formData.profileImage)} 
+                          alt="Preview"
+                          sx={{ width: 100, height: 100, mb: 1, boxShadow: 1 }}
+                        />
+                        <Typography variant="body2" color="primary">
+                          {formData.profileImage.name}
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                          <Button 
+                            size="small" 
+                            variant="outlined"
+                            onClick={() => setFormData({...formData, profileImage: null})}
+                            color="error"
+                          >
+                            Remove
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            component="label"
+                          >
+                            Change Image
+                            <input
+                              accept="image/*"
+                              type="file"
+                              hidden
+                              onChange={handleFileChange}
+                            />
+                          </Button>
+                        </Box>
+                      </>
+                    ) : (
+                      <>
+                        <Box sx={{ position: 'relative' }}>
+                          <Avatar 
+                            sx={{ 
+                              width: 80, 
+                              height: 80, 
+                              mb: 2, 
+                              bgcolor: "rgba(28,114,147,0.2)",
+                              color: "#1C7293"
+                            }}
+                          >
+                          </Avatar>
+                          <Button
+                            className="!bg-[#daf1f9] border border-white !text-[#1C7293]"
+                            component="label"
+                            sx={{ 
+                              position: 'absolute',
+                              bottom: 0,
+                              right: 0,
+                              borderRadius: '50%', 
+                              minWidth: 'auto',
+                              padding: '4px',
+                              width: '24px',
+                              height: '24px',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <AddIcon fontSize="small" />
+                            <input
+                              accept="image/*"
+                              type="file"
+                              hidden
+                              onChange={handleFileChange}
+                            />
+                          </Button>
+                        </Box>
+                      </>
+                    )}
+                  </Box>
+                </FormControl>
+              </Grid>
               <Grid item xs={12} sx={{width: '48%'}}>
                 <TextField
                   autoFocus
@@ -379,7 +470,6 @@ function Athletes() {
                     onChange={handleChange}
                     label="Coach"
                     sx={{ borderRadius: 1.5 }}
-                    
                   >
                     <MenuItem value="">
                       <em>None</em>
@@ -417,85 +507,23 @@ function Athletes() {
                   <FormHelperText>Assign the athlete to a school (optional)</FormHelperText>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sx={{ width: '100%' }}>
-                <FormControl fullWidth margin="dense">
-                  <Typography variant="subtitle1" gutterBottom>
-                    Profile Image
-                  </Typography>
-                  <Box 
-                    sx={{ 
-                      border: '2px dashed #ccc', 
-                      borderRadius: 2, 
-                      p: 3, 
-                      textAlign: 'center',
-                      transition: 'all 0.3s',
-                      bgcolor: 'rgba(0,0,0,0.02)',
-                      '&:hover': {
-                        borderColor: '#1C7293',
-                        bgcolor: 'rgba(28,114,147,0.05)'
-                      },
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '100%',
-                    }}
-                  >
-                    {formData.profileImage ? (
-                      <Box sx={{ mb: 2 }}>
-                        <Avatar 
-                          src={URL.createObjectURL(formData.profileImage)} 
-                          alt="Preview"
-                          sx={{ width: 100, height: 100, mb: 1, boxShadow: 1 }}
-                        />
-                        <Typography variant="body2" color="primary">
-                          {formData.profileImage.name}
-                        </Typography>
-                        <Button 
-                          size="small" 
-                          sx={{ mt: 1 }}
-                          onClick={() => setFormData({...formData, profileImage: null})}
-                          color="error"
-                        >
-                          Remove
-                        </Button>
-                      </Box>
-                    ) : (
-                      <Avatar 
-                        sx={{ 
-                          width: 60, 
-                          height: 60, 
-                          mb: 2, 
-                          bgcolor: 'rgba(28,114,147,0.2)',
-                          color: '#1C7293'
-                        }}
-                      >
-                        <AddIcon fontSize="large" />
-                      </Avatar>
-                    )}
-                    
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      sx={{ 
-                        mb: 1,
-                        borderRadius: 6,
-                        px: 2
-                      }}
-                    >
-                      {formData.profileImage ? 'Change Image' : 'Choose Image'}
-                      <input
-                        accept="image/*"
-                        type="file"
-                        hidden
-                        onChange={handleFileChange}
-                      />
-                    </Button>
-                    <FormHelperText>
-                      Upload a profile image (optional) - JPEG, PNG (max 5MB)
-                    </FormHelperText>
-                  </Box>
-                </FormControl>
+              <Grid item xs={12} sx={{width: '100%'}}>
+                <TextField
+                  margin="dense"
+                  name="bio"
+                  label="Bio"
+                  multiline
+                  rows={4}
+                  fullWidth
+                  variant="outlined"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  helperText="Enter athlete's biography or background information"
+                  placeholder="Brief description of athlete's background, achievements, and goals..."
+                  InputProps={{
+                    sx: { borderRadius: 1.5 }
+                  }}
+                />
               </Grid>
             </Grid>
           </DialogContent>

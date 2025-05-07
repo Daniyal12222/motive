@@ -364,7 +364,7 @@ function Dashboard() {
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography component="h2" variant="h6">
-                Groups
+                Teams
               </Typography>
               <GroupIcon fontSize="large" />
             </Box>

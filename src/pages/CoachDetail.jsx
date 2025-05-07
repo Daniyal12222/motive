@@ -173,6 +173,16 @@ function CoachDetail() {
                 </Box>
               </Box>
               
+              {/* Coach Bio */}
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                  Bio
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {coach.bio || 'No bio information available. Add a bio to help athletes and parents learn more about this coach\'s background and experience.'}
+                </Typography>
+              </Box>
+              
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -218,6 +228,106 @@ function CoachDetail() {
         </CardContent>
       </Card>
 
+      {/* Coach's Teams Table */}
+      <Card elevation={3} sx={{ mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <GroupIcon color="primary" sx={{ mr: 1.5 }} />
+              <Typography variant="h6">Teams Assigned to {coach.name}</Typography>
+            </Box>
+            <Button
+              variant="contained"
+              className='!bg-[#1C7293] !text-white'
+              startIcon={<GroupIcon />}
+              onClick={() => navigate(`/add-team?coachId=${coach.id}`)}
+            >
+              Add Team
+            </Button>
+          </Box>
+          
+          {coachGroups.length > 0 ? (
+            <TableContainer component={Paper} variant="outlined">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Team Name</TableCell>
+                    <TableCell>Athletes</TableCell>
+                    <TableCell>Upcoming Events</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {coachGroups.map(group => {
+                    const teamAthletes = getGroupAthletes(group.id);
+                    const teamEvents = getGroupEvents(group.id);
+                    const upcomingEvents = teamEvents.filter(event => 
+                      new Date(event.date) >= new Date()
+                    ).slice(0, 2);
+                    
+                    return (
+                      <TableRow key={group.id}>
+                        <TableCell>
+                          <Typography variant="body1" fontWeight="medium">
+                            {group.name}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {teamAthletes.length} {teamAthletes.length === 1 ? 'athlete' : 'athletes'}
+                        </TableCell>
+                        <TableCell>
+                          {upcomingEvents.length > 0 ? (
+                            <Box>
+                              {upcomingEvents.map(event => (
+                                <Typography key={event.id} variant="body2" sx={{ mb: 0.5 }}>
+                                  {event.title} - {event.date}
+                                </Typography>
+                              ))}
+                              {teamEvents.length > 2 && (
+                                <Typography variant="body2" color="text.secondary">
+                                  +{teamEvents.length - 2} more events
+                                </Typography>
+                              )}
+                            </Box>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No upcoming events
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            onClick={() => {
+                              setExpandedGroup(group.id);
+                              // Scroll to the group accordion
+                              const groupElement = document.getElementById(`group-${group.id}`);
+                              if (groupElement) {
+                                groupElement.scrollIntoView({ behavior: 'smooth' });
+                              }
+                            }}
+                          >
+                            View Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 3 }}>
+              <Typography variant="body1" color="text.secondary">
+                This coach is not assigned to any teams
+              </Typography>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Tabs for Groups, Athletes, and Events */}
       <Paper elevation={2} sx={{ mb: 4 }}>
         <Box sx={{ p: 3 }}>
@@ -232,6 +342,7 @@ function CoachDetail() {
                 expanded={expandedGroup === group.id}
                 onChange={() => handleGroupChange(group.id)}
                 sx={{ mb: 2 }}
+                id={`group-${group.id}`}
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -258,9 +369,19 @@ function CoachDetail() {
                 <AccordionDetails>
                   
                   {/* Athletes Section */}
-                  <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                    Athletes
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, mb: 2 }}>
+                    <Typography variant="h6">
+                      Athletes
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      className='!bg-[#1C7293] !text-white'
+                      startIcon={<PersonIcon />}
+                      onClick={() => navigate(`/add-athlete?groupId=${group.id}`)}
+                    >
+                      Add Athlete
+                    </Button>
+                  </Box>
                   {getGroupAthletes(group.id).length > 0 ? (
                     <TableContainer component={Paper} variant="outlined" sx={{ mb: 4 }}>
                       <Table>

@@ -117,6 +117,7 @@ function AppContent() {
     <div className="min-h-screen antialiased text-gray-800 bg-gray-50 dark:bg-gray-900 dark:text-gray-200">
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot" element={<ForgotPassword />} />
         
         <Route path="/" element={
           <ProtectedRoute>
@@ -125,7 +126,6 @@ function AppContent() {
         }>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="coaches" element={<Coaches />} />
           <Route path="coach/:id" element={<CoachDetail />} />
           <Route path="athletes" element={<Athletes />} />
@@ -136,7 +136,6 @@ function AppContent() {
           <Route path="/school/:schoolId" element={<SchoolDetail/>} />
           <Route path="/profile" element={<Profile />} />
         </Route>
-        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
