@@ -13,7 +13,9 @@ import {
   Card, 
   CardContent,
   IconButton,
-  Tooltip
+  Tooltip,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { 
   Person as PersonIcon, 
@@ -31,9 +33,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 
 // TabPanel component for tab content
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
+function TabPanel({ children, value, index, ...other }) {
   return (
     <div
       role="tabpanel"
@@ -42,14 +42,82 @@ function TabPanel(props) {
       aria-labelledby={`school-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: { xs: 1, sm: 2 } }}>{children}</Box>}
     </div>
   );
 }
+
+// Card components for different entities
+const CoachCard = ({ coach }) => (
+  <Card sx={{ borderRadius: 1, '&:hover': { transform: 'translateY(-3px)', boxShadow: 3, cursor: 'pointer' } }}>
+    <CardContent sx={{ display: 'flex', alignItems: 'center', py: 1.5 }}>
+      <Avatar sx={{ bgcolor: '#1C7293', width: { xs: 40, sm: 45 }, height: { xs: 40, sm: 45 }, mr: 1.5 }}>
+        <PersonIcon />
+      </Avatar>
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold">{coach.name}</Typography>
+        <Typography variant="body2" color="text.secondary">{coach.title || 'Coach'}</Typography>
+      </Box>
+    </CardContent>
+  </Card>
+);
+
+const TeamCard = ({ group, athleteCount }) => (
+  <Card sx={{ borderRadius: 1, '&:hover': { transform: 'translateY(-3px)', boxShadow: 3, cursor: 'pointer' } }}>
+    <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+        <Avatar sx={{ bgcolor: '#1C7293', width: { xs: 35, sm: 40 }, height: { xs: 35, sm: 40 }, mr: 1.5 }}>
+          <GroupIcon />
+        </Avatar>
+        <Typography variant="subtitle1" fontWeight="bold" noWrap>{group.name}</Typography>
+      </Box>
+      <Chip size="small" label={`${athleteCount} Athletes`} color="primary" variant="outlined" />
+    </CardContent>
+  </Card>
+);
+
+const EventCard = ({ event, formatDate }) => (
+  <Card sx={{ borderRadius: 1, '&:hover': { transform: 'translateY(-3px)', boxShadow: 3, cursor: 'pointer' } }}>
+    <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
+      <Typography variant="subtitle1" fontWeight="bold" noWrap>{event.title}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+        <CalendarIcon sx={{ color: 'text.secondary', mr: 0.5, fontSize: 16 }} />
+        <Typography variant="body2" color="text.secondary">{formatDate(event.date)}</Typography>
+      </Box>
+      {event.location && (
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+          <LocationIcon sx={{ color: 'text.secondary', mr: 0.5, fontSize: 16 }} />
+          <Typography variant="body2" color="text.secondary" noWrap>{event.location}</Typography>
+        </Box>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const AthleteCard = ({ athlete, teamName }) => (
+  <Card sx={{ borderRadius: 1, '&:hover': { transform: 'translateY(-3px)', boxShadow: 3, cursor: 'pointer' } }}>
+    <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Avatar sx={{ bgcolor: '#1C7293', width: { xs: 35, sm: 40 }, height: { xs: 35, sm: 40 }, mr: 1.5 }}>
+          <SportsIcon />
+        </Avatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="subtitle1" fontWeight="bold" noWrap>{athlete.name}</Typography>
+          <Typography variant="body2" color="text.secondary" noWrap>{teamName}</Typography>
+        </Box>
+      </Box>
+    </CardContent>
+  </Card>
+);
+
+// EmptyState component for when no data is available
+const EmptyState = ({ icon: Icon, message, buttonText }) => (
+  <Paper sx={{ p: 2, borderRadius: 1, textAlign: 'center' }}>
+    <Icon sx={{ fontSize: { xs: 30, sm: 40 }, color: 'text.secondary', opacity: 0.5 }} />
+    <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>{message}</Typography>
+    {buttonText && <Button variant="contained" size="small" sx={{ mt: 1 }}>{buttonText}</Button>}
+  </Paper>
+);
 
 const SchoolDetail = () => {
   const { schoolId } = useParams();
@@ -57,6 +125,9 @@ const SchoolDetail = () => {
   const { schools, coaches, groups, athletes, events } = useAppContext();
   const [school, setSchool] = useState(null);
   const [tabValue, setTabValue] = useState(0);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     if (schools.length > 0) {
@@ -65,23 +136,11 @@ const SchoolDetail = () => {
     }
   }, [schoolId, schools]);
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
   if (!school) {
     return (
-      <Box sx={{ textAlign: 'center', padding: 5 }}>
-        <Typography variant="h4" color="textSecondary" gutterBottom>School Not Found</Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          We couldn't find a school with the provided ID. Please check the URL or go back to the schools list.
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate('/schools')}
-          sx={{ marginTop: 3 }}
-        >
+      <Box sx={{ textAlign: 'center', p: 3 }}>
+        <Typography variant="h5" color="textSecondary" gutterBottom>School Not Found</Typography>
+        <Button variant="contained" onClick={() => navigate('/schools')} sx={{ mt: 2 }}>
           Back to Schools
         </Button>
       </Box>
@@ -95,378 +154,252 @@ const SchoolDetail = () => {
 
   // Format date function
   const formatDate = (dateString) => {
-    const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+    const options = { month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   return (
-    <Box sx={{ padding: { xs: 2, md: 3 }, maxWidth: '1200px', margin: '0 auto' }}>
+    <Box sx={{ maxWidth: '1100px', margin: '0 auto', p: { xs: 1, sm: 1.5, md: 2 } }}>
       <Button 
-        className='!text-[#1C7293] !text-lg'
         startIcon={<ArrowBackIcon />} 
         onClick={() => navigate('/Schools')}
-        sx={{ mb: 2 }}
+        sx={{ mb: { xs: 1, sm: 2 }, color: '#1C7293' }}
       >
         Back
       </Button>
       
-      {/* School Info Section */}
-      <Paper 
-        elevation={3}
-        sx={{ 
-          padding: { xs: 2, md: 4 }, 
-          marginBottom: 4, 
-          borderRadius: 2, 
-          background: 'linear-gradient(135deg, #ffffff 0%, #f5f9fc 100%)',
-          position: 'relative'
-        }}
-      >
-        <Tooltip title="Edit School Information">
-          <IconButton 
-            sx={{ position: 'absolute', top: 10, right: 10 }}
-            onClick={() => alert('Edit functionality would go here')}
-          >
-            <EditIcon />
-          </IconButton>
-        </Tooltip>
+      {/* School Info Card */}
+      <Paper elevation={1} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 }, borderRadius: 2, position: 'relative' }}>
+        <Avatar 
+          sx={{ 
+            position: 'absolute', 
+            top: 10, 
+            right: 10,
+            width: { xs: 35, sm: 40 },
+            height: { xs: 35, sm: 40 },
+            bgcolor: '#1C7293',
+            cursor: 'pointer'
+          }}
+          alt="User Profile"
+        >
+          <PersonIcon fontSize="small" />
+        </Avatar>
         
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' } }}>
-            <Avatar 
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography 
+            variant={isSmallScreen ? "h5" : "h4"} 
+            className='font-semibold' 
+            gutterBottom
+            sx={{ pr: { xs: 5, sm: 0 } }} // Add padding on small screens to avoid overlap with avatar
+          >
+            {school.name}
+          </Typography>
+          
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: { xs: 1.5, sm: 2 } }}>
+            <LocationIcon sx={{ color: 'text.secondary', mr: 0.5, fontSize: 20, mt: 0.3 }} />
+            <Typography variant="body1" color="text.secondary">
+              {school.address ? `${school.address}, ${school.city}, ${school.state} ${school.zipCode}` : '/ /'}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, sm: 1.5 } }}>
+            <Button 
+              variant="outlined" 
+              size="small"
+              startIcon={<PersonIcon sx={{ fontSize: 16 }} />}
               sx={{ 
-                width: { xs: 100, md: 140 }, 
-                height: { xs: 100, md: 140 }, 
-                bgcolor: 'rgba(28, 114, 147, 0.1)', 
-                border: '4px solid rgba(28, 114, 147, 0.2)',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                borderRadius: 5,
+                textTransform: 'none',
+                px: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '0.7rem', sm: '0.8125rem' },
+                mb: { xs: 0.5, sm: 0 },
+                color: '#1976d2',
+                borderColor: '#1976d2'
               }}
             >
-              <SchoolIcon sx={{ fontSize: { xs: 50, md: 70 }, color: '#1C7293' }} />
-            </Avatar>
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom color="#1C7293">
-              {school.name}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <LocationIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-              <Typography variant="body1" color="text.secondary">
-                {school.address}, {school.city}, {school.state} {school.zipCode}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
-              <Chip 
-                label={`${schoolCoaches.length} Coaches`} 
-                icon={<PersonIcon />} 
-                color="primary" 
-                variant="outlined" 
-              />
-              <Chip 
-                label={`${schoolGroups.length} Teams`} 
-                icon={<GroupIcon />} 
-                color="primary" 
-                variant="outlined" 
-              />
-              <Chip 
-                label={`${schoolAthletes.length} Athletes`} 
-                icon={<SportsIcon />} 
-                color="primary" 
-                variant="outlined" 
-              />
-              <Chip 
-                label={`${schoolEvents.length} Events`} 
-                icon={<EventIcon />} 
-                color="primary" 
-                variant="outlined" 
-              />
-            </Box>
-          </Grid>
-        </Grid>
+              {schoolCoaches.length} Coaches
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              size="small"
+              startIcon={<GroupIcon sx={{ fontSize: 16 }} />}
+              sx={{ 
+                borderRadius: 5,
+                textTransform: 'none',
+                px: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '0.7rem', sm: '0.8125rem' },
+                mb: { xs: 0.5, sm: 0 },
+                color: '#d32f2f',
+                borderColor: '#d32f2f'
+              }}
+            >
+              {schoolGroups.length} Teams
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              size="small"
+              startIcon={<SportsIcon sx={{ fontSize: 16 }} />}
+              sx={{ 
+                borderRadius: 5,
+                textTransform: 'none',
+                px: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '0.7rem', sm: '0.8125rem' },
+                mb: { xs: 0.5, sm: 0 },
+                color: '#2e7d32',
+                borderColor: '#2e7d32'
+              }}
+            >
+              {schoolAthletes.length} Athletes
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              size="small"
+              startIcon={<EventIcon sx={{ fontSize: 16 }} />}
+              sx={{ 
+                borderRadius: 5,
+                textTransform: 'none',
+                px: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '0.7rem', sm: '0.8125rem' },
+                mb: { xs: 0.5, sm: 0 },
+                color: '#1976d2',
+                borderColor: '#1976d2'
+              }}
+            >
+              {schoolEvents.length} Events
+            </Button>
+          </Box>
+        </Box>
       </Paper>
 
-      {/* Tabs Section */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={handleTabChange} 
-          variant="scrollable"
-          scrollButtons="auto"
-          aria-label="school details tabs"
-          sx={{
-            '& .MuiTab-root': {
-              fontWeight: 'bold',
-              fontSize: '1rem',
-            },
-            '& .Mui-selected': {
-              color: '#1C7293',
-            },
-            '& .MuiTabs-indicator': {
-              backgroundColor: '#1C7293',
-              height: 3,
-            }
-          }}
-        >
-          <Tab label="Coaches" icon={<PersonIcon />} iconPosition="start" />
-          <Tab label="Teams" icon={<GroupIcon />} iconPosition="start" />
-          <Tab label="Events" icon={<EventIcon />} iconPosition="start" />
-          <Tab label="Athletes" icon={<SportsIcon />} iconPosition="start" />
-        </Tabs>
-      </Box>
+      {/* Tabs Navigation */}
+      <Tabs 
+        value={tabValue} 
+        onChange={(_, newValue) => setTabValue(newValue)} 
+        variant="scrollable"
+        scrollButtons="auto"
+        allowScrollButtonsMobile
+        sx={{
+          mb: { xs: 1, sm: 2 },
+          borderBottom: 1,
+          borderColor: 'divider',
+          '& .Mui-selected': { color: '#1C7293' },
+          '& .MuiTabs-indicator': { backgroundColor: '#1C7293' },
+          '& .MuiTab-root': { 
+            minWidth: { xs: 'auto', sm: 90 },
+            p: { xs: '6px 10px', sm: '12px 16px' },
+            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+          }
+        }}
+      >
+        <Tab 
+          label={isSmallScreen ? "" : "Coaches"} 
+          icon={<PersonIcon fontSize="small" />} 
+          iconPosition={isSmallScreen ? "top" : "start"} 
+          aria-label="Coaches"
+        />
+        <Tab 
+          label={isSmallScreen ? "" : "Athletes"} 
+          icon={<SportsIcon fontSize="small" />} 
+          iconPosition={isSmallScreen ? "top" : "start"} 
+          aria-label="Athletes"
+        />
+        <Tab 
+          label={isSmallScreen ? "" : "Teams"} 
+          icon={<GroupIcon fontSize="small" />} 
+          iconPosition={isSmallScreen ? "top" : "start"} 
+          aria-label="Teams"
+        />
+        <Tab 
+          label={isSmallScreen ? "" : "Events"} 
+          icon={<EventIcon fontSize="small" />} 
+          iconPosition={isSmallScreen ? "top" : "start"} 
+          aria-label="Events"
+        />
+      </Tabs>
 
-      {/* Coaches Tab Panel */}
+      {/* Coaches Tab */}
       <TabPanel value={tabValue} index={0}>
-        <Grid container spacing={2}>
-          {schoolCoaches.length === 0 ? (
-            <Grid item xs={12}>
-              <Paper sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: '#f5f5f5'
-              }}>
-                <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
-                <Typography variant="h6" color="text.secondary">No coaches available</Typography>
-                <Button variant="contained" sx={{ mt: 2 }}>Add Coach</Button>
-              </Paper>
-            </Grid>
-          ) : (
-            schoolCoaches.map((coach) => (
-              <Grid item xs={12} sm={6} md={4} key={coach.id}>
-                <Card 
-                  sx={{ 
-                    borderRadius: 2, 
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-                      cursor: 'pointer'
-                    }
-                  }}
-                  onClick={() => alert(`View coach details for ${coach.name}`)}
-                >
-                  <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar sx={{ bgcolor: '#1C7293', width: 60, height: 60, mr: 2 }}>
-                      <PersonIcon sx={{ color: 'white', fontSize: 30 }} />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight="bold">{coach.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {coach.title || 'Coach'}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
+        {schoolCoaches.length === 0 ? (
+          <EmptyState 
+            icon={PersonIcon} 
+            message="No coaches available" 
+            buttonText="Add Coach" 
+          />
+        ) : (
+          <Grid container spacing={1}>
+            {schoolCoaches.map(coach => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={coach.id}>
+                <CoachCard coach={coach} />
               </Grid>
-            ))
-          )}
-        </Grid>
+            ))}
+          </Grid>
+        )}
       </TabPanel>
 
-      {/* Teams Tab Panel */}
+      {/* Athletes Tab */}
       <TabPanel value={tabValue} index={1}>
-        <Grid container spacing={2}>
-          {schoolGroups.length === 0 ? (
-            <Grid item xs={12}>
-              <Paper sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: '#f5f5f5'
-              }}>
-                <GroupIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
-                <Typography variant="h6" color="text.secondary">No teams/groups available</Typography>
-                <Button variant="contained" sx={{ mt: 2 }}>Create Team</Button>
-              </Paper>
-            </Grid>
-          ) : (
-            schoolGroups.map((group) => (
-              <Grid item xs={12} sm={6} md={4} key={group.id}>
-                <Card 
-                  sx={{ 
-                    borderRadius: 2,
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-                      cursor: 'pointer'
-                    }
-                  }}
-                  onClick={() => alert(`View team details for ${group.name}`)}
-                >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar sx={{ bgcolor: '#1C7293', mr: 2 }}>
-                        <GroupIcon sx={{ color: 'white' }} />
-                      </Avatar>
-                      <Typography variant="h6" fontWeight="bold">{group.name}</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-                      <Chip 
-                        size="small" 
-                        label={`${athletes.filter(a => a.groupId === group.id).length} Athletes`} 
-                        color="primary" 
-                        variant="outlined" 
-                      />
-                      <Tooltip title="View Details">
-                        <IconButton size="small" sx={{ color: '#1C7293' }}>
-                          <InfoIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))
-          )}
-        </Grid>
-      </TabPanel>
-
-      {/* Events Tab Panel */}
-      <TabPanel value={tabValue} index={2}>
-        <Grid container spacing={2}>
-          {schoolEvents.length === 0 ? (
-            <Grid item xs={12}>
-              <Paper sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: '#f5f5f5'
-              }}>
-                <EventIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
-                <Typography variant="h6" color="text.secondary">No events available</Typography>
-                <Button variant="contained" sx={{ mt: 2 }}>Schedule Event</Button>
-              </Paper>
-            </Grid>
-          ) : (
-            schoolEvents.map((event) => (
-              <Grid item xs={12} sm={6} key={event.id}>
-                <Card 
-                  sx={{ 
-                    borderRadius: 2,
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-                      cursor: 'pointer'
-                    },
-                    overflow: 'visible'
-                  }}
-                  onClick={() => alert(`View event details for ${event.title}`)}
-                >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', mb: 2 }}>
-                      <Avatar 
-                        sx={{ 
-                          bgcolor: '#1C7293', 
-                          width: 70, 
-                          height: 70, 
-                          mr: 2,
-                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                          transform: 'translateY(-15px)'
-                        }}
-                      >
-                        <EventIcon sx={{ color: 'white', fontSize: 30 }} />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h6" fontWeight="bold">{event.title}</Typography>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          {event.description?.substring(0, 60) || "No description available"}
-                          {event.description?.length > 60 ? "..." : ""}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <CalendarIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDate(event.date)}
-                      </Typography>
-                    </Box>
-                    
-                    {event.time && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <TimeIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                        <Typography variant="body2" color="text.secondary">
-                          {event.time}
-                        </Typography>
-                      </Box>
-                    )}
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <LocationIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {event.location || "No location specified"}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))
-          )}
-        </Grid>
-      </TabPanel>
-
-      {/* Athletes Tab Panel */}
-      <TabPanel value={tabValue} index={3}>
-        <Grid container spacing={2}>
-          {schoolAthletes.length === 0 ? (
-            <Grid item xs={12}>
-              <Paper sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: '#f5f5f5'
-              }}>
-                <SportsIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
-                <Typography variant="h6" color="text.secondary">No athletes available</Typography>
-                <Button variant="contained" sx={{ mt: 2 }}>Add Athlete</Button>
-              </Paper>
-            </Grid>
-          ) : (
-            schoolAthletes.map((athlete) => (
+        {schoolAthletes.length === 0 ? (
+          <EmptyState 
+            icon={SportsIcon} 
+            message="No athletes available" 
+            buttonText="Add Athlete" 
+          />
+        ) : (
+          <Grid container spacing={1}>
+            {schoolAthletes.map(athlete => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={athlete.id}>
-                <Card 
-                  sx={{ 
-                    borderRadius: 2,
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-                      cursor: 'pointer'
-                    }
-                  }}
-                  onClick={() => alert(`View athlete details for ${athlete.name}`)}
-                >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar sx={{ bgcolor: '#1C7293', mr: 2 }}>
-                        <SportsIcon sx={{ color: 'white' }} />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h6" fontWeight="bold">{athlete.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {groups.find(g => g.id === athlete.groupId)?.name || 'No Team'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
+                <AthleteCard 
+                  athlete={athlete} 
+                  teamName={groups.find(g => g.id === athlete.groupId)?.name || 'No Team'} 
+                />
               </Grid>
-            ))
-          )}
-        </Grid>
+            ))}
+          </Grid>
+        )}
+      </TabPanel>
+
+      {/* Teams Tab */}
+      <TabPanel value={tabValue} index={2}>
+        {schoolGroups.length === 0 ? (
+          <EmptyState 
+            icon={GroupIcon} 
+            message="No teams available" 
+            buttonText="Create Team" 
+          />
+        ) : (
+          <Grid container spacing={1}>
+            {schoolGroups.map(group => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={group.id}>
+                <TeamCard 
+                  group={group} 
+                  athleteCount={athletes.filter(a => a.groupId === group.id).length} 
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </TabPanel>
+
+      {/* Events Tab */}
+      <TabPanel value={tabValue} index={3}>
+        {schoolEvents.length === 0 ? (
+          <EmptyState 
+            icon={EventIcon} 
+            message="No events available" 
+            buttonText="Schedule Event" 
+          />
+        ) : (
+          <Grid container spacing={1}>
+            {schoolEvents.map(event => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={event.id}>
+                <EventCard event={event} formatDate={formatDate} />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </TabPanel>
     </Box>
   );

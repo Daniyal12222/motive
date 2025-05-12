@@ -40,6 +40,7 @@ function DashboardLayout() {
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
+    navigate("/profile");
   };
 
   const handleLogout = () => {
@@ -51,27 +52,27 @@ function DashboardLayout() {
   const menuItems = [
     { 
       text: 'Dashboard', 
-      icon: <DashboardIcon />, 
+      icon: <DashboardIcon fontSize="small" />, 
       path: '/dashboard' 
     },
     { 
       text: 'Coaches', 
-      icon: <PersonIcon />, 
+      icon: <PersonIcon fontSize="small" />, 
       path: '/coaches' 
     },
     { 
       text: 'Athletes', 
-      icon: <PeopleIcon />, 
+      icon: <PeopleIcon fontSize="small" />, 
       path: '/athletes' 
     },
     { 
       text: 'Teams', 
-      icon: <Diversity3Icon />, 
+      icon: <Diversity3Icon fontSize="small" />, 
       path: '/groups' 
     },
     { 
       text: 'Schools', 
-      icon: <SchoolIcon />, 
+      icon: <SchoolIcon fontSize="small" />, 
       path: '/schools' 
     },
   ];
@@ -81,9 +82,9 @@ function DashboardLayout() {
   const activePageName = activeMenuItem ? activeMenuItem.text : 'Motive';
 
   const drawer = (
-    <div className="h-full bg-[#1C7293] text-white">
+    <div className="h-full bg-[#1C7293] text-gray-50">
       <Toolbar className="">
-        <Typography variant="h6" noWrap component="div" className="flex-grow font-medium">
+        <Typography variant="h6" noWrap component="div" className="flex-grow font-medium text-sm">
           Motive
         </Typography>
       </Toolbar>
@@ -94,14 +95,15 @@ function DashboardLayout() {
               component={Link} 
               to={item.path}
               selected={location.pathname === item.path}
-              className={`rounded-lg transition-colors ${location.pathname === item.path ? '!bg-[#065A82] !rounded text-white' : 'hover:bg-[#1A6480] text-white'}`}
+              className={`rounded-lg transition-colors ${location.pathname === item.path ? '!bg-[#065A82]  !rounded text-white' : 'hover:bg-[#1A6480] text-gray-50'}`}
             >
-              <ListItemIcon className="!text-white">
+              <ListItemIcon className="!text-gray-50 !min-w-[30px]">
                 {item.icon}
               </ListItemIcon>
               <ListItemText 
                 primary={item.text} 
-                className="text-white"
+                className="text-gray-50 text-sm"
+                primaryTypographyProps={{ fontSize: '0.75rem' }}
               />
             </ListItemButton>
           </ListItem>
@@ -117,7 +119,7 @@ function DashboardLayout() {
         <Box 
           component="nav"
           className="fixed z-30 h-full"
-          sx={{ width: { xs: 0, sm: 240 } }}
+          sx={{ width: { xs: 0, sm: 180 } }}
           aria-label="dashboard navigation"
         >
           <Drawer
@@ -131,8 +133,9 @@ function DashboardLayout() {
               display: { xs: 'block', sm: 'none' },
               '& .MuiDrawer-paper': { 
                 boxSizing: 'border-box', 
-                width: 240,
-                borderColor: 'divider'
+                width: 180,
+                borderColor: 'white',
+                color: 'white'
               },
             }}
           >
@@ -144,9 +147,10 @@ function DashboardLayout() {
               display: { xs: 'none', sm: 'block' },
               '& .MuiDrawer-paper': { 
                 boxSizing: 'border-box', 
-                width: 240,
-                borderColor: 'divider',
-                boxShadow: 1
+                width: 180,
+                borderColor: 'white',
+                boxShadow: 1,
+                color: 'white'
               },
             }}
             open
@@ -157,8 +161,8 @@ function DashboardLayout() {
       )}
       <Box 
         component="main" 
-        className="flex-1 flex flex-col overflow-hidden "
-        sx={{ ml: isDetailPage ? 0 : { sm: '240px' } }}
+        className="flex-1 flex flex-col overflow-hidden"
+        sx={{ ml: isDetailPage ? 0 : { sm: '180px' } }}
       >
         <AppBar
           position="sticky"
@@ -175,9 +179,9 @@ function DashboardLayout() {
               onClick={handleDrawerToggle}
               className="mr-4 text-white sm:hidden"
             >
-              <MenuIcon className='md:!hidden' />
+              <MenuIcon className='md:!hidden text-white' />
             </IconButton>
-            <Typography variant="h6" noWrap component="div" className="font-medium text-center text-white">
+            <Typography variant="h6" noWrap component="div" className="font-normal text-center uppercase text-white">
               {activePageName}
             </Typography>
             </Box>
@@ -208,7 +212,7 @@ function DashboardLayout() {
                 onClose={handleCloseUserMenu}
               >
                 <MenuItem onClick={handleCloseUserMenu} className="min-w-[180px]">
-                  <Button className="!text-gray-700 " onClick={()=>{navigate("/profile")}}>Profile</Button>
+                  <Typography className="!text-gray-700 ">Profile</Typography>
                 </MenuItem>
                 <MenuItem onClick={handleLogout} className="min-w-[180px]">
                   <ListItemIcon className="text-gray-600">
@@ -220,8 +224,8 @@ function DashboardLayout() {
             </Box>
           </Toolbar>
         </AppBar>
-        <Box className="flex-1 overflow-y-auto p-6 bg-[#9EB3C2]">
-          <div className="max-w-7xl py-3 mx-auto bg-white rounded">
+        <Box className="flex-1 overflow-y-auto p-3 bg-[#9EB3C2]">
+          <div className="max-w-7xl py-3 mx-auto min-h-[calc(100vh-100px)] md:h-auto bg-white rounded">
             <Outlet />
           </div>
         </Box>

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Box, Button, Paper, Typography, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, Grid,
-  Chip, Divider, FormControl, Select, MenuItem, FormHelperText, Avatar
+  Chip, Divider, FormControl, Select, MenuItem, FormHelperText, Avatar,
+  Pagination, TablePagination, useMediaQuery, useTheme, Card, CardContent
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -22,10 +23,15 @@ import { useAppContext } from '../context/AppContext';
 
 function Schools() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { schools, setSchools, coaches, groups } = useAppContext();
   const [open, setOpen] = useState(false);
   const [editSchool, setEditSchool] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -64,6 +70,18 @@ function Schools() {
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
+    setPage(0); // Reset to first page when search changes
+  };
+
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   // Filter schools by search query
@@ -77,6 +95,12 @@ function Schools() {
       school.phone?.toLowerCase().includes(query)
     );
   });
+
+  // Apply pagination to filtered schools
+  const paginatedSchools = filteredSchools.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   // Get all cities from schools
   const cities = [...new Set(schools.filter(school => school.city).map(school => school.city))];
@@ -104,7 +128,6 @@ function Schools() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (editSchool) {
       // Update existing school
       const updatedSchools = schools.map(school => 
@@ -162,14 +185,117 @@ function Schools() {
     navigate(`/school/${schoolId}`);
   };
 
+  // Pagination Controls
+  const TablePaginationActions = () => {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        bgcolor: '#f5f7fa', 
+        px: isMobile ? 1 : 2, 
+        py: 1, 
+        borderRadius: '0 0 8px 8px',
+        flexWrap: isMobile ? 'wrap' : 'nowrap',
+        justifyContent: isMobile ? 'center' : 'flex-start'
+      }}>
+        <Typography variant="body2" sx={{ 
+          mr: 2, 
+          color: 'text.secondary',
+          fontSize: isMobile ? '0.75rem' : '0.875rem'
+        }}>
+          {filteredSchools.length > 0 ? 
+            `Showing ${Math.min(page * rowsPerPage + 1, filteredSchools.length)}-${Math.min((page + 1) * rowsPerPage, filteredSchools.length)} of ${filteredSchools.length}` : 
+            'No results'
+          }
+        </Typography>
+      </Box>
+    );
+  };
+
+  // Render school as card for mobile view
+  const renderSchoolCard = (school) => {
+    return (
+      <Card 
+        key={school.id}
+        sx={{ 
+          mb: 2, 
+          cursor: 'pointer',
+          '&:hover': { boxShadow: 3 }
+        }}
+        onClick={() => handleRowClick(school.id)}
+      >
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Avatar 
+              sx={{ mr: 2, bgcolor: 'rgba(28,114,147,0.2)', width: 40, height: 40 }}
+            >
+              <SchoolIcon sx={{ color: '#1C7293', fontSize: '1.25rem' }} />
+            </Avatar>
+            <Typography variant="h6" fontWeight={500}>
+              {school.name}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Location:</strong> {school.city && school.state ? 
+                `${school.city}, ${school.state} ${school.zipCode || ''}` : 'No location data'}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Contact:</strong> {school.phone || school.email ? 
+                `${school.phone || ''} ${school.email || ''}` : 'No contact info'}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+            <Chip 
+              icon={<PersonIcon sx={{ fontSize: '0.85rem' }} />} 
+              label={`${getSchoolCoachesCount(school.id)} Coaches`}
+              size="small"
+              color="primary"
+              variant="outlined"
+            />
+            <Chip 
+              icon={<GroupIcon sx={{ fontSize: '0.85rem' }} />} 
+              label={`${getSchoolGroupsCount(school.id)} Teams`}
+              size="small"
+              color="secondary"
+              variant="outlined"
+            />
+            <Chip 
+              icon={<PersonIcon sx={{ fontSize: '0.85rem' }} />} 
+              label={`${getSchoolAthletesCount(school.id)} Athletes`}
+              size="small"
+              color="success"
+              variant="outlined"
+            />
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div>
       {/* Filter Section */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: "space-between" }}>
-          <div className='flex items-center' style={{ width: '50%' }}>
+      <Paper sx={{ p: isMobile ? 1.5 : 2, mb: 3 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: 'center', 
+          justifyContent: "space-between",
+          gap: isMobile ? 2 : 0
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            width: isMobile ? '100%' : '50%' 
+          }}>
             <TextField
-              placeholder="Search schools by name, city, state, etc."
+              placeholder="Search schools..."
               variant="outlined"
               fullWidth
               size="small"
@@ -197,8 +323,13 @@ function Schools() {
                 )
               }}
             />
-          </div>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          </Box>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            justifyContent: isMobile ? 'space-between' : 'flex-end',
+            width: isMobile ? '100%' : 'auto'
+          }}>
             <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
               {filteredSchools.length} {filteredSchools.length === 1 ? 'school' : 'schools'} found
             </Typography>
@@ -207,6 +338,7 @@ function Schools() {
               variant="contained" 
               startIcon={<AddIcon />}
               onClick={handleOpen}
+              size={isMobile ? "small" : "medium"}
             >
               Add School
             </Button>
@@ -214,50 +346,42 @@ function Schools() {
         </Box>
       </Paper>
 
-      {/* Schools Table */}
+      {/* Table View (for all screen sizes) */}
       <TableContainer 
         component={Paper}
         sx={{
-          "&::-webkit-scrollbar": {
-            width: "8px",
-            height: "8px",
-          },
-          "&::-webkit-scrollbar-track": {
-            backgroundColor: "#f1f1f1",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#1C7293",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: "#14576F",
-          },
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+          mb: 2,
+          overflow: 'auto'
         }}
       >
-        <Table sx={{ minWidth: 650 }} aria-label="schools table">
+        <Table 
+          sx={{ minWidth: isMobile ? 650 : 800 }} 
+          aria-label="schools table"
+        >
           <TableHead>
             <TableRow>
-              <TableCell>School</TableCell>
-              <TableCell>Location</TableCell>
-              <TableCell>Contact</TableCell>
-              <TableCell>Coaches</TableCell>
-              <TableCell>Teams</TableCell>
-              <TableCell>Athletes</TableCell>
-              <TableCell>Events</TableCell>
+              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>School</TableCell>
+              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Location</TableCell>
+              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Contact</TableCell>
+              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Coaches</TableCell>
+              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Teams</TableCell>
+              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Athletes</TableCell>
+              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Events</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredSchools.length === 0 ? (
+            {paginatedSchools.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} align="center">
-                  <Typography variant="body1" sx={{ py: 2 }}>
+                  <Typography variant="body2" sx={{ py: 2, color: 'text.secondary' }}>
                     No schools found. Add your first school!
                   </Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              filteredSchools.map((school) => (
+              paginatedSchools.map((school) => (
                 <TableRow 
                   key={school.id}
                   onClick={() => handleRowClick(school.id)}
@@ -268,19 +392,19 @@ function Schools() {
                     } 
                   }}
                 >
-                  <TableCell>
+                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Avatar 
-                        sx={{ mr: 2, bgcolor: 'rgba(28,114,147,0.2)' }}
+                        sx={{ mr: 2, bgcolor: 'rgba(28,114,147,0.2)', width: 32, height: 32 }}
                       >
-                        <SchoolIcon sx={{ color: '#1C7293' }} />
+                        <SchoolIcon sx={{ color: '#1C7293', fontSize: '1rem' }} />
                       </Avatar>
-                      <Typography variant="body1" fontWeight={500}>
+                      <Typography variant="body2" fontWeight={500} sx={{ color: 'text.primary' }}>
                         {school.name}
                       </Typography>
                     </Box>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
                     {school.city && school.state ? (
                       `${school.city}, ${school.state} ${school.zipCode || ''}`
                     ) : (
@@ -289,16 +413,16 @@ function Schools() {
                       </Typography>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
                     {school.phone || school.email ? (
                       <Box>
                         {school.phone && (
-                          <Typography variant="body2">
+                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             {school.phone}
                           </Typography>
                         )}
                         {school.email && (
-                          <Typography variant="body2" color="primary">
+                          <Typography variant="body2" color="primary" sx={{ fontSize: '0.815rem' }}>
                             {school.email}
                           </Typography>
                         )}
@@ -309,40 +433,44 @@ function Schools() {
                       </Typography>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
                     <Chip 
-                      icon={<PersonIcon />} 
+                      icon={<PersonIcon sx={{ fontSize: '0.85rem' }} />} 
                       label={getSchoolCoachesCount(school.id)}
                       size="small"
                       color="primary"
                       variant="outlined"
+                      sx={{ height: '22px', '& .MuiChip-label': { fontSize: '0.75rem', px: 1 } }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
                     <Chip 
-                      icon={<GroupIcon />} 
+                      icon={<GroupIcon sx={{ fontSize: '0.85rem' }} />} 
                       label={getSchoolGroupsCount(school.id)}
                       size="small"
                       color="secondary"
                       variant="outlined"
+                      sx={{ height: '22px', '& .MuiChip-label': { fontSize: '0.75rem', px: 1 } }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
                     <Chip 
-                      icon={<PersonIcon />} 
+                      icon={<PersonIcon sx={{ fontSize: '0.85rem' }} />} 
                       label={getSchoolAthletesCount(school.id)}
                       size="small"
                       color="success"
                       variant="outlined"
+                      sx={{ height: '22px', '& .MuiChip-label': { fontSize: '0.75rem', px: 1 } }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
                     <Chip 
-                      icon={<EventIcon />} 
+                      icon={<EventIcon sx={{ fontSize: '0.85rem' }} />} 
                       label={getSchoolEventsCount(school.id)}
                       size="small"
                       color="info"
                       variant="outlined"
+                      sx={{ height: '22px', '& .MuiChip-label': { fontSize: '0.75rem', px: 1 } }}
                     />
                   </TableCell>
                 </TableRow>
@@ -352,9 +480,58 @@ function Schools() {
         </Table>
       </TableContainer>
 
+      {/* Pagination */}
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row', 
+        justifyContent: isMobile ? 'start' : 'end', 
+        alignItems: isMobile ? 'center' : 'center', 
+        mt: 1, 
+        gap: isMobile ? 1 : 0
+      }}>
+        <TablePagination
+          rowsPerPageOptions={isMobile ? [5, 10] : [5, 10, 25, 50]}
+          component="div"
+          count={filteredSchools.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+              margin: 0,
+              fontSize: isMobile ? '0.7rem' : 'inherit',
+            },
+            '.MuiTablePagination-toolbar': {
+              pl: isMobile ? 0 : 1,
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+            },
+            '.MuiInputBase-root': {
+              marginRight: isMobile ? '0.5rem' : '2rem',
+              marginLeft: isMobile ? '0.5rem' : '0.5rem',
+            },
+            '.MuiTablePagination-actions': {
+              marginLeft: isMobile ? 0 : 2,
+            }
+          }}
+        />
+      </Box>
+
       {/* Add/Edit School Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ textAlign: 'center', bgcolor: '#1C7293', color: 'white' }}>
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        maxWidth="sm" 
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ 
+          textAlign: 'center', 
+          bgcolor: '#1C7293', 
+          color: 'white',
+          py: isMobile ? 1.5 : 2
+        }}>
           {editSchool ? 'Edit School' : 'Add New School'}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
@@ -363,7 +540,8 @@ function Schools() {
             flexDirection: 'column', 
             alignItems: 'center',
             justifyContent: 'center',
-            px: 4,
+            px: isMobile ? 2 : 4,
+            py: isMobile ? 2 : 3,
             "&::-webkit-scrollbar": {
               width: "8px",
               height: "8px",
@@ -380,7 +558,7 @@ function Schools() {
               backgroundColor: "#14576F",
             },
           }}>
-            <Grid container spacing={2} sx={{ maxWidth: '95%' }}>
+            <Grid container spacing={isMobile ? 1 : 2} sx={{ maxWidth: '100%' }}>
               <Grid item xs={12}>
                 <TextField
                   autoFocus
@@ -415,7 +593,7 @@ function Schools() {
                   }}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   name="city"
                   label="City"
@@ -431,7 +609,7 @@ function Schools() {
                   }}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6} sm={3}>
                 <TextField
                   name="state"
                   label="State"
@@ -447,7 +625,7 @@ function Schools() {
                   }}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6} sm={3}>
                 <TextField
                   name="zipCode"
                   label="Zip Code"
@@ -501,10 +679,24 @@ function Schools() {
             bgcolor: '#f7f7f7', 
             display: 'flex', 
             justifyContent: 'center', 
-            py: 2 
+            py: isMobile ? 1.5 : 2,
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 1 : 2,
+            px: isMobile ? 2 : 3
           }}>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit" variant="contained" color="primary">
+            <Button 
+              onClick={handleClose}
+              fullWidth={isMobile}
+              variant={isMobile ? "outlined" : "text"}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              fullWidth={isMobile}
+            >
               {editSchool ? 'Save Changes' : 'Add School'}
             </Button>
           </DialogActions>

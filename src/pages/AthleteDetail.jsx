@@ -51,6 +51,19 @@ import golfIcon from '../assets/sportIcon/golf.png';
 import badmintonIcon from '../assets/sportIcon/hockey.png';
 import hockeyIcon from '../assets/sportIcon/badminton.png';
 
+// Helper: Sport options for dropdown, similar to Coaches.jsx
+const sportOptionsList = [
+  { name: "Basketball", icon: basketballIcon },
+  { name: "Soccer", icon: soccerIcon },
+  { name: "Track & Field", icon: trackIcon },
+  { name: "Swimming", icon: swimmingIcon },
+  { name: "Baseball", icon: baseballIcon },
+  { name: "Football", icon: footballIcon },
+  { name: "Golf", icon: golfIcon },
+  { name: "Hockey", icon: hockeyIcon },
+  { name: "Badminton", icon: badmintonIcon }, // Assuming badminton uses hockey icon as per original imports
+];
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -76,15 +89,18 @@ function AthleteDetail() {
   const [athlete, setAthlete] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [expandedEvents, setExpandedEvents] = useState({});
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
     name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     schoolId: '',
     coachId: '',
     sport: '',
-    bio: ''
+    bio: '',
+    profileImage: null
   });
   const [formErrors, setFormErrors] = useState({});
   const [formTouched, setFormTouched] = useState({});
@@ -96,14 +112,22 @@ function AthleteDetail() {
     const foundAthlete = athletes.find(a => a.id === athleteId);
     if (foundAthlete) {
       setAthlete(foundAthlete);
-      setEditForm({
+      // Populate form data, split name into first and last
+      const nameParts = foundAthlete.name ? foundAthlete.name.split(' ') : ["", ""];
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(' ') || "";
+
+      setEditFormData({
         name: foundAthlete.name || '',
+        firstName: firstName,
+        lastName: lastName,
         email: foundAthlete.email || '',
         phone: foundAthlete.phone || '',
         schoolId: foundAthlete.schoolId || '',
         coachId: foundAthlete.coachId || '',
         sport: foundAthlete.sport || '',
-        bio: foundAthlete.bio || ''
+        bio: foundAthlete.bio || '',
+        profileImage: getAthleteImage(foundAthlete.id)
       });
     }
   }, [id, athletes]);
@@ -121,7 +145,7 @@ function AthleteDetail() {
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({
+    setEditFormData(prev => ({
       ...prev,
       [name]: value
     }));
@@ -144,25 +168,28 @@ function AthleteDetail() {
   const validateForm = () => {
     const errors = {};
     
-    // Name validation
-    if (!editForm.name.trim()) {
-      errors.name = 'Name is required';
+    // Name validation (using firstName and lastName)
+    if (!editFormData.firstName.trim()) {
+      errors.firstName = 'First Name is required';
+    }
+    if (!editFormData.lastName.trim()) {
+      errors.lastName = 'Last Name is required';
     }
     
     // Email validation
-    if (!editForm.email.trim()) {
+    if (!editFormData.email.trim()) {
       errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(editForm.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(editFormData.email)) {
       errors.email = 'Email is invalid';
     }
     
     // Phone validation (optional but must be valid if provided)
-    if (editForm.phone && !/^[0-9\-\(\)\s\+]{10,15}$/.test(editForm.phone.replace(/\s/g, ''))) {
+    if (editFormData.phone && !/^[0-9\-\(\)\s\+]{10,15}$/.test(editFormData.phone.replace(/\s/g, ''))) {
       errors.phone = 'Please enter a valid phone number';
     }
     
     // Sport validation
-    if (!editForm.sport) {
+    if (!editFormData.sport) {
       errors.sport = 'Please select a sport';
     }
     
@@ -174,7 +201,7 @@ function AthleteDetail() {
     setSaveAttempted(true);
     
     // Mark all fields as touched
-    const allTouched = Object.keys(editForm).reduce((acc, key) => {
+    const allTouched = Object.keys(editFormData).reduce((acc, key) => {
       acc[key] = true;
       return acc;
     }, {});
@@ -183,13 +210,26 @@ function AthleteDetail() {
     const isValid = validateForm();
     
     if (isValid && athlete) {
-      const updatedAthlete = {
-        ...athlete,
-        ...editForm
+      const fullName = `${editFormData.firstName} ${editFormData.lastName}`.trim();
+      const updatedAthleteData = {
+        ...editFormData,
+        name: fullName,
       };
-      updateAthlete(updatedAthlete);
-      setAthlete(updatedAthlete);
-      setIsEditing(false);
+      // Remove temp fields not part of athlete object structure if necessary
+      delete updatedAthleteData.firstName;
+      delete updatedAthleteData.lastName;
+      // profileImage might be a file object or a string path, handle accordingly
+      // For now, assume updateAthlete handles it or it's just for display in form
+      // delete updatedAthleteData.profileImage; 
+
+      const finalAthletePayload = {
+        ...athlete,
+        ...updatedAthleteData
+      };
+      
+      updateAthlete(finalAthletePayload);
+      setAthlete(finalAthletePayload);
+      setEditDialogOpen(false);
       setSaveAttempted(false);
       
       // Reset touched state
@@ -197,24 +237,46 @@ function AthleteDetail() {
     }
   };
 
-  const toggleEditMode = () => {
-    if (isEditing) {
-      // Reset form to original values if canceling
-      setEditForm({
+  const handleOpenEditDialog = () => {
+    // Repopulate form with current athlete data before opening
+    if (athlete) {
+      const nameParts = athlete.name ? athlete.name.split(' ') : ["", ""];
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(' ') || "";
+      setEditFormData({
         name: athlete.name || '',
+        firstName: firstName,
+        lastName: lastName,
         email: athlete.email || '',
         phone: athlete.phone || '',
         schoolId: athlete.schoolId || '',
         coachId: athlete.coachId || '',
         sport: athlete.sport || '',
-        bio: athlete.bio || ''
+        bio: athlete.bio || '',
+        profileImage: getAthleteImage(athlete.id)
       });
-      // Clear errors and touched state
-      setFormErrors({});
-      setFormTouched({});
-      setSaveAttempted(false);
     }
-    setIsEditing(!isEditing);
+    setFormErrors({});
+    setFormTouched({});
+    setSaveAttempted(false);
+    setEditDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialogOpen(false);
+    // Optionally reset form or errors if needed upon simple close
+    setFormErrors({});
+    setFormTouched({});
+    setSaveAttempted(false);
+  };
+  
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setEditFormData(prev => ({
+        ...prev,
+        profileImage: e.target.files[0]
+      }));
+    }
   };
 
   // Helper function to determine if a field has an error
@@ -304,34 +366,42 @@ function AthleteDetail() {
   ).length;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+    <Container maxWidth="lg" sx={{ mt: 3, mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
         <Button 
-          className='!text-[#1C7293] !text-lg'
-          startIcon={<ArrowBackIcon />} 
+          className='!text-[#1C7293] !text-base'
+          startIcon={<ArrowBackIcon sx={{ fontSize: 18 }} />} 
           onClick={() => navigate('/athletes')}
+          size="small"
         >
           Back
         </Button>
         <Button
           variant="outlined"
-          color="primary"
-          startIcon={isEditing ? <CloseIcon /> : <EditIcon />}
-          onClick={toggleEditMode}
+          size="small"
+          className=' !bg-[#1C7293] !text-white !text-sm !px-3 !py-1 !font-medium !rounded-md !transition-all'
+          startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+          onClick={handleOpenEditDialog}
+          sx={{ borderRadius: '6px', textTransform: 'none', px: 1.5 }}
         >
-          {isEditing ? 'Cancel' : 'Edit Athlete'}
+          Edit Athlete
         </Button>
       </Box>
 
       {/* Athlete Profile Card */}
-      <Card elevation={3} sx={{ mb: 4 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Grid container>
-            <Grid item xs={12} md={8} sx={{width : "100%"}}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: "space-between", width: "100%" }}>
+      <Card elevation={1} sx={{ mb: 2, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)' }}>
+        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <Grid container alignItems="center">
+            <Grid item xs={12} md={8} sx={{ width: "100%" }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: { xs: 1, md: 0 }, justifyContent: "space-between", width: "100%" }}>
                 <Box>
-                  <Typography variant="h4" gutterBottom>{athlete.name}</Typography>
-                  <Typography variant="h6" color="primary">
+                  <Typography variant="h5" sx={{ mb: 0.5, fontSize: '1.2rem', fontWeight: 600 }}>{athlete.name}</Typography>
+                  <Typography variant="subtitle1" color="primary" sx={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
+                    <Avatar 
+                      src={getSportIcon(athlete.sport)}
+                      alt={athlete.sport}
+                      sx={{ width: 18, height: 18, mr: 0.75 }}
+                    />
                     {athlete.sport} Athlete
                   </Typography>
                 </Box>
@@ -339,53 +409,69 @@ function AthleteDetail() {
                   <Avatar 
                     src={getAthleteImage(athlete.id)}
                     alt={athlete.name}
-                    sx={{ width: 80, height: 80 }}
+                    sx={{ width: 64, height: 64, border: '2px solid rgba(28, 114, 147, 0.2)' }}
                   />
                 </Box>
               </Box>
+                <Box sx={{ mb: 1.5, mt: 1, p: 1, borderRadius: '6px', borderBottom : "1px solid rgba(0,0,0,0.06)" }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                      Bio
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                    {athlete.bio}
+                  </Typography>
+                </Box>
               
-              <Grid container spacing={2} sx={{ mb: 3 }} >
+              <Grid container spacing={1} sx={{ mb: 1.5 }} alignItems="center">
                 <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <EmailIcon color="action" sx={{ mr: 1.5 }} />
-                    <Typography variant="body1">{athlete.email}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.75 }}>
+                    <EmailIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">{athlete.email}</Typography>
                   </Box>
                   
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <PhoneIcon color="action" sx={{ mr: 1.5 }} />
-                    <Typography variant="body1">{athlete.phone || 'No phone number'}</Typography>
+                    <PhoneIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">{athlete.phone || 'No phone number'}</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <SchoolIcon color="action" sx={{ mr: 1.5 }} />
-                    <Typography variant="body1">{getSchoolName(athlete.schoolId)}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.75 }}>
+                    <SchoolIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">{getSchoolName(athlete.schoolId)}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <PersonIcon color="action" sx={{ mr: 1.5 }} />
-                    <Typography variant="body1">Coach: {getCoachName(athlete.coachId)}</Typography>
+                    <PersonIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">Coach: {getCoachName(athlete.coachId)}</Typography>
                   </Box>
                 </Grid>
               </Grid>
               
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <Chip 
-                  icon={<GroupIcon />} 
+                  icon={<GroupIcon sx={{ fontSize: 16 }} />} 
                   label={`${athleteGroups.length} Teams`} 
                   color="primary" 
                   variant="outlined"
+                  size="small"
+                  sx={{ height: 24, '& .MuiChip-label': { px: 1, fontSize: '0.75rem' } }}
                 />
                 <Chip 
-                  icon={<EventIcon />} 
+                  icon={<EventIcon sx={{ fontSize: 16 }} />} 
                   label={`${athleteEvents.length} Events`} 
                   color="primary" 
                   variant="outlined"
+                  size="small"
+                  sx={{ height: 24, '& .MuiChip-label': { px: 1, fontSize: '0.75rem' } }}
                 />
                 <Chip 
-                  icon={<SportsIcon />} 
+                  icon={<SportsIcon sx={{ fontSize: 16 }} />} 
                   label={athlete.sport} 
                   color="secondary" 
                   variant="outlined"
+                  size="small"
+                  sx={{ height: 24, '& .MuiChip-label': { px: 1, fontSize: '0.75rem' } }}
                 />
               </Box>
             </Grid>
@@ -393,603 +479,333 @@ function AthleteDetail() {
         </CardContent>
       </Card>
 
-      {/* Athlete Edit Dialog */}
-      <Dialog 
-        open={isEditing} 
-        onClose={(event, reason) => {
-          if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
-            toggleEditMode();
-          }
-        }}
-        fullWidth
-        maxWidth="md"
-        PaperProps={{
-          sx: {
-            borderRadius: '12px',
-            overflow: 'hidden',
-            width: '100%',
-            maxWidth: '700px'
-          }
-        }}
-      >
-        <DialogTitle 
-          sx={{ 
-            background: 'linear-gradient(to right, #1C7293, #065a82)', 
-            color: 'white',
-            p: 2
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <EditIcon sx={{ mr: 1.5 }} />
-              <Typography variant="h6" component="span" sx={{ fontWeight: 'bold' }}>
-                Edit Athlete Profile
-              </Typography>
-            </Box>
-            <IconButton 
-              onClick={toggleEditMode} 
-              sx={{ color: 'white' }}
-              aria-label="Close dialog"
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
+      {/* Athlete Edit Dialog - New Structure based on Coach Edit Form */}
+      <Dialog open={editDialogOpen} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '8px' } }}>
+        <DialogTitle sx={{ textAlign: "center", bgcolor: "#1C7293", color: "white", py: 1.5, fontSize: '1.1rem' }}>
+          Edit Athlete Profile
         </DialogTitle>
-        
-        <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ p: 3, bgcolor: 'rgba(28, 114, 147, 0.03)' }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item>
-                <Avatar 
-                  src={getAthleteImage(athlete.id)}
-                  alt={athlete.name}
-                  sx={{ width: 60, height: 60 }}
+        <form onSubmit={(e) => { e.preventDefault(); handleEditSubmit(); }}>
+          <DialogContent
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              px: {xs: 2, sm: 3},
+              py: 2,
+            }}
+          >
+            <Grid container spacing={2} sx={{ maxWidth: "100%" }}>
+              {/* Profile Image Section - Similar to Coach Form */}
+              <Grid item xs={12} sx={{ width: "100%" }}>
+                <FormControl fullWidth margin="dense">
+                  <Box
+                    sx={{
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 1
+                    }}
+                  >
+                    <Box sx={{ position: 'relative', mb: 1 }}>
+                      <Avatar
+                        src={
+                          editFormData.profileImage instanceof File
+                            ? URL.createObjectURL(editFormData.profileImage)
+                            : editFormData.profileImage
+                        }
+                        alt={editFormData.name}
+                        sx={{ width: 80, height: 80, boxShadow: 2 }}
+                      />
+                      <IconButton
+                        component="label"
+                        size="small"
+                        sx={{
+                          position: 'absolute',
+                          bottom: -5,
+                          right: -5,
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          border: '1px solid #1C7293',
+                          color: '#1C7293',
+                          '&:hover': {
+                            bgcolor: '#1C7293',
+                            color: 'white',
+                          }
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                        <input
+                          accept="image/*"
+                          type="file"
+                          hidden
+                          onChange={handleFileChange}
+                        />
+                      </IconButton>
+                    </Box>
+                    {editFormData.profileImage instanceof File && (
+                        <Typography variant="caption" color="textSecondary">
+                          {editFormData.profileImage.name}
+                        </Typography>
+                    )}
+                  </Box>
+                </FormControl>
+              </Grid>
+
+              {/* First Name and Last Name */}
+              <Grid item xs={12} sm={6} sx={{ width: "48%" }}>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  name="firstName"
+                  label="First Name *"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={editFormData.firstName}
+                  onChange={handleEditChange}
+                  required
+                  error={hasError('firstName')}
+                  helperText={hasError('firstName') ? formErrors.firstName : ' '}
+                  placeholder="John"
+                  InputProps={{ sx: { borderRadius: 1.5, height: '36px', fontSize: '0.825rem' } }}
+                  InputLabelProps={{ sx: { fontSize: '0.875rem' } }}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs>
-                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                  {athlete.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  ID: {athlete.id}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-          
-          <Box sx={{ px: 3, py: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: '100%' }}>
-                  <TextField
-                    name="name"
-                    label="Full Name *"
-                    value={editForm.name}
-                    onChange={handleEditChange}
-                    fullWidth
-                    variant="outlined"
-                    required
-                    error={hasError('name')}
-                    helperText={hasError('name') ? formErrors.name : ' '}
-                    InputProps={{
-                      startAdornment: (
-                        <PersonIcon color={hasError('name') ? "error" : "action"} sx={{ mr: 1 }} />
-                      ),
-                      sx: { height: '40px' }
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&.Mui-focused': {
-                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
-                        },
-                      },
-                    }}
-                    size="small"
-                  />
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: '100%' }}>
-                  <TextField
-                    name="email"
-                    label="Email Address *"
-                    type="email"
-                    value={editForm.email}
-                    onChange={handleEditChange}
-                    fullWidth
-                    variant="outlined"
-                    required
-                    error={hasError('email')}
-                    helperText={hasError('email') ? formErrors.email : 'We will never share your email'}
-                    InputProps={{
-                      startAdornment: (
-                        <EmailIcon color={hasError('email') ? "error" : "action"} sx={{ mr: 1 }} />
-                      ),
-                      sx: { height: '40px' }
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&.Mui-focused': {
-                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
-                        },
-                      },
-                    }}
-                    size="small"
-                  />
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: '100%' }}>
-                  <TextField
-                    name="phone"
-                    label="Phone Number"
-                    value={editForm.phone}
-                    onChange={handleEditChange}
-                    fullWidth
-                    variant="outlined"
-                    error={hasError('phone')}
-                    helperText={hasError('phone') ? formErrors.phone : 'Format: (123) 456-7890'}
-                    InputProps={{
-                      startAdornment: (
-                        <PhoneIcon color={hasError('phone') ? "error" : "action"} sx={{ mr: 1 }} />
-                      ),
-                      sx: { height: '40px' }
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&.Mui-focused': {
-                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
-                        },
-                      },
-                    }}
-                    size="small"
-                  />
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: '100%' }}>
-                  <FormControl 
-                    fullWidth 
-                    variant="outlined"
-                    error={hasError('sport')}
-                    required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&.Mui-focused': {
-                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
-                        },
-                        '& .MuiSelect-select': {
-                          height: '6px', // Adjust height to match text inputs
-                          display: 'flex',
-                          alignItems: 'center',
-                        }
-                      },
-                    }}
-                    size="small"
-                  >
-                    <InputLabel id="sport-select-label">Sport *</InputLabel>
-                    <Select
-                      labelId="sport-select-label"
-                      id="sport-select"
-                      name="sport"
-                      value={editForm.sport}
-                      onChange={handleEditChange}
-                      label="Sport *"
-                      startAdornment={
-                        <SportsIcon color={hasError('sport') ? "error" : "action"} sx={{ mr: 1 }} />
-                      }
-                    >
-                      <MenuItem value=""><em>Select a sport</em></MenuItem>
-                      <MenuItem value="Basketball">Basketball</MenuItem>
-                      <MenuItem value="Soccer">Soccer</MenuItem>
-                      <MenuItem value="Track & Field">Track & Field</MenuItem>
-                      <MenuItem value="Swimming">Swimming</MenuItem>
-                      <MenuItem value="Baseball">Baseball</MenuItem>
-                      <MenuItem value="Football">Football</MenuItem>
-                      <MenuItem value="Golf">Golf</MenuItem>
-                      <MenuItem value="Hockey">Hockey</MenuItem>
-                      <MenuItem value="Badminton">Badminton</MenuItem>
-                    </Select>
-                    {hasError('sport') ? (
-                      <FormHelperText error>{formErrors.sport}</FormHelperText>
-                    ) : (
-                      <FormHelperText> </FormHelperText>
-                    )}
-                  </FormControl>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: '100%' }}>
-                  <FormControl 
-                    fullWidth 
-                    variant="outlined"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&.Mui-focused': {
-                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
-                        },
-                        '& .MuiSelect-select': {
-                          height: '6px', // Adjust height to match text inputs
-                          display: 'flex',
-                          alignItems: 'center',
-                        }
-                      },
-                    }}
-                    size="small"
-                  >
-                    <InputLabel id="school-select-label">School</InputLabel>
-                    <Select
-                      labelId="school-select-label"
-                      id="school-select"
-                      name="schoolId"
-                      value={editForm.schoolId}
-                      onChange={handleEditChange}
-                      label="School"
-                      startAdornment={
-                        <SchoolIcon color="action" sx={{ mr: 1 }} />
-                      }
-                    >
-                      <MenuItem value=""><em>Not Assigned</em></MenuItem>
-                      {schools.map(school => (
-                        <MenuItem key={school.id} value={school.id}>{school.name}</MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText> </FormHelperText>
-                  </FormControl>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: '100%' }}>
-                  <FormControl 
-                    fullWidth 
-                    variant="outlined"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&.Mui-focused': {
-                          boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
-                        },
-                        '& .MuiSelect-select': {
-                          height: '6px', // Adjust height to match text inputs
-                          display: 'flex',
-                          alignItems: 'center',
-                        }
-                      },
-                    }}
-                    size="small"
-                  >
-                    <InputLabel id="coach-select-label">Coach</InputLabel>
-                    <Select
-                      labelId="coach-select-label"
-                      id="coach-select"
-                      name="coachId"
-                      value={editForm.coachId}
-                      onChange={handleEditChange}
-                      label="Coach"
-                      startAdornment={
-                        <PersonIcon color="action" sx={{ mr: 1 }} />
-                      }
-                    >
-                      <MenuItem value=""><em>Not Assigned</em></MenuItem>
-                      {coaches.map(coach => (
-                        <MenuItem key={coach.id} value={coach.id}>{coach.name}</MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText> </FormHelperText>
-                  </FormControl>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6} sx={{ width: "48%" }}>
                 <TextField
+                  margin="dense"
+                  name="lastName"
+                  label="Last Name *"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={editFormData.lastName}
+                  onChange={handleEditChange}
+                  required
+                  error={hasError('lastName')}
+                  helperText={hasError('lastName') ? formErrors.lastName : ' '}
+                  placeholder="Doe"
+                  InputProps={{ sx: { borderRadius: 1.5, height: '36px', fontSize: '0.825rem' } }}
+                  InputLabelProps={{ sx: { fontSize: '0.875rem' } }}
+                  size="small"
+                />
+              </Grid>
+
+              {/* Email */}
+              <Grid item xs={12} sm={6} sx={{ width: "48%" }}>
+                <TextField
+                  margin="dense"
+                  name="email"
+                  label="Email Address *"
+                  type="email"
+                  fullWidth
+                  variant="outlined"
+                  value={editFormData.email}
+                  onChange={handleEditChange}
+                  required
+                  error={hasError('email')}
+                  helperText={hasError('email') ? formErrors.email : 'We will never share your email.'}
+                  placeholder="athlete@example.com"
+                  InputProps={{ sx: { borderRadius: 1.5, height: '36px', fontSize: '0.825rem' }, startAdornment: <EmailIcon color={hasError('email') ? "error" : "action"} sx={{ mr: 1, fontSize: 18 }} /> }}
+                  InputLabelProps={{ sx: { fontSize: '0.875rem' } }}
+                  size="small"
+                />
+              </Grid>
+
+              {/* Phone */}
+              <Grid item xs={12} sm={6} sx={{ width: "48%" }}>
+                <TextField
+                  margin="dense"
+                  name="phone"
+                  label="Phone Number"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={editFormData.phone}
+                  onChange={handleEditChange}
+                  error={hasError('phone')}
+                  helperText={hasError('phone') ? formErrors.phone : 'Format: (123) 456-7890'}
+                  placeholder="(123) 456-7890"
+                  InputProps={{ sx: { borderRadius: 1.5, height: '36px', fontSize: '0.825rem' }, startAdornment: <PhoneIcon color={hasError('phone') ? "error" : "action"} sx={{ mr: 1, fontSize: 18 }} /> }}
+                  InputLabelProps={{ sx: { fontSize: '0.875rem' } }}
+                  size="small"
+                />
+              </Grid>
+
+              {/* Sport Select */}
+              <Grid item xs={12} sm={6} sx={{ width: "48%" }}>
+                <FormControl fullWidth margin="dense" variant="outlined" error={hasError('sport')} required size="small">
+                  <InputLabel id="athlete-sport-select-label" sx={{ fontSize: '0.875rem' }}>Sport *</InputLabel>
+                  <Select
+                    labelId="athlete-sport-select-label"
+                    name="sport"
+                    value={editFormData.sport}
+                    onChange={handleEditChange}
+                    label="Sport *"
+                    sx={{ borderRadius: 1.5, height: '36px', fontSize: '0.825rem' }}
+                  >
+                    <MenuItem value=""><em>Select a sport</em></MenuItem>
+                    {sportOptionsList.map((sport) => (
+                      <MenuItem key={sport.name} value={sport.name}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Avatar src={sport.icon} alt={sport.name} sx={{ width: 20, height: 20, mr: 0.5 }} />
+                          {sport.name}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {hasError('sport') ? (
+                    <FormHelperText error>{formErrors.sport}</FormHelperText>
+                  ) : (
+                    <FormHelperText> </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              {/* School Select */}
+              <Grid item xs={12} sm={6} sx={{ width: "48%" }}>
+                <FormControl fullWidth margin="dense" variant="outlined" size="small">
+                  <InputLabel id="athlete-school-select-label" sx={{ fontSize: '0.875rem' }}>School</InputLabel>
+                  <Select
+                    labelId="athlete-school-select-label"
+                    name="schoolId"
+                    value={editFormData.schoolId}
+                    onChange={handleEditChange}
+                    label="School"
+                    sx={{ borderRadius: 1.5, height: '36px', fontSize: '0.825rem' }}
+                    startAdornment={<SchoolIcon color={"action"} sx={{ mr: 1, fontSize: 18 }} />}
+                  >
+                    <MenuItem value=""><em>Not Assigned</em></MenuItem>
+                    {schools.map(school => (
+                      <MenuItem key={school.id} value={school.id}>{school.name}</MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText> </FormHelperText>
+                </FormControl>
+              </Grid>
+
+              {/* Coach Select */}
+              <Grid item xs={12} sm={6} sx={{ width: "98%" }}>
+                <FormControl fullWidth margin="dense" variant="outlined" size="small">
+                  <InputLabel id="athlete-coach-select-label" sx={{ fontSize: '0.875rem' }}>Coach</InputLabel>
+                  <Select
+                    labelId="athlete-coach-select-label"
+                    name="coachId"
+                    value={editFormData.coachId}
+                    onChange={handleEditChange}
+                    label="Coach"
+                    placeholder="Select a coach"
+                    sx={{ borderRadius: 1.5, height: '36px', fontSize: '0.825rem' }}
+                    startAdornment={<PersonIcon color={"action"} sx={{ mr: 1, fontSize: 18 }} />}
+                  >
+                    <MenuItem value=""><em>Not Assigned</em></MenuItem>
+                    {coaches.map(coach => (
+                      <MenuItem key={coach.id} value={coach.id}>{coach.name}</MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText> </FormHelperText>
+                </FormControl>
+              </Grid>
+              
+              {/* Bio TextField */}
+              <Grid item xs={12} sx={{ width: "98%" }}>
+                <TextField
+                  margin="dense"
                   name="bio"
                   label="Athlete Bio"
-                  value={editForm.bio}
+                  value={editFormData.bio}
                   onChange={handleEditChange}
                   fullWidth
                   variant="outlined"
                   multiline
                   rows={3}
                   placeholder="Enter a brief biography or notable achievements..."
-                  helperText="Add any relevant information about the athlete"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&.Mui-focused': {
-                        boxShadow: '0 0 0 2px rgba(28, 114, 147, 0.2)',
-                      },
-                    },
-                    mt: 1
-                  }}
+                  helperText="Add any relevant information about the athlete."
+                  InputProps={{ sx: { borderRadius: 1.5, fontSize: '0.825rem' } }}
+                  InputLabelProps={{ sx: { fontSize: '0.875rem' } }}
+                  size="small"
                 />
               </Grid>
             </Grid>
-          </Box>
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 2, bgcolor: 'rgba(0,0,0,0.02)', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-          <Typography variant="body2" color="textSecondary" sx={{ mr: 'auto', fontSize: '0.75rem' }}>
-            * Required fields
-          </Typography>
-          <Button 
-            onClick={toggleEditMode} 
-            color="inherit"
-            startIcon={<CloseIcon />}
-            sx={{ borderRadius: '8px' }}
-            size="small"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleEditSubmit} 
-            color="primary"
-            variant="contained"
-            startIcon={<SaveIcon />}
-            sx={{ 
-              px: 2, 
-              borderRadius: '8px',
-              background: 'linear-gradient(to right, #1C7293, #065a82)',
-              '&:hover': {
-                background: 'linear-gradient(to right, #065a82, #054c6a)',
-              }
-            }}
-            size="small"
-          >
-            Save
-          </Button>
-        </DialogActions>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: "center", pb: 2, pt:1, gap: 2, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+             <Typography variant="caption" color="textSecondary" sx={{ mr: 'auto', fontSize: '0.7rem', ml:1 }}>
+                * Required fields
+              </Typography>
+            <Button
+              onClick={handleCloseEditDialog}
+              variant="outlined"
+              size="small"
+              sx={{
+                px: 2,
+                borderRadius: '6px',
+                color: "text.secondary",
+                borderColor: "text.secondary",
+                textTransform: 'none',
+                fontSize: '0.8rem',
+                '&:hover': {
+                  borderColor: "text.primary",
+                  bgcolor: "rgba(0,0,0,0.03)",
+                },
+              }}
+              startIcon={<CloseIcon sx={{ fontSize: 16 }} />}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              size="small"
+              sx={{
+                px: 2,
+                borderRadius: '6px',
+                textTransform: 'none',
+                fontSize: '0.8rem',
+                background: 'linear-gradient(to right, #1C7293, #065a82)',
+                '&:hover': {
+                  background: 'linear-gradient(to right, #065a82, #054c6a)',
+                }
+              }}
+              startIcon={<SaveIcon sx={{ fontSize: 16 }} />}
+            >
+              Save Changes
+            </Button>
+          </DialogActions>
+        </form>
       </Dialog>
 
       {/* Tabs for different sections */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="athlete tabs">
-          <Tab label="Overview" id="athlete-tab-0" />
-          <Tab label="Teams" id="athlete-tab-1" />
-          <Tab label="Events" id="athlete-tab-2" />
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1 }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          aria-label="athlete tabs"
+          sx={{ 
+            minHeight: 36,
+            '& .MuiTab-root': { 
+              minHeight: 36, 
+              fontSize: '0.85rem',
+              textTransform: 'none',
+              py: 0.5,
+              px: 2
+            } 
+          }}
+        >
+          <Tab label="Teams" id="athlete-tab-0" />
+          <Tab label="Events" id="athlete-tab-1" />
         </Tabs>
       </Box>
 
-      {/* Overview Tab */}
-      <TabPanel value={tabValue} index={0}>
-        <Grid container spacing={3} sx={{width : "100%", display: "flex", justifyContent: "space-between" }}>
-          <Grid item xs={12} md={7} sx={{ width : "55%" }}>
-            <Card elevation={3} sx={{ borderRadius: '12px', height: '100%' }}>
-              <Box sx={{ p: 3, background: 'linear-gradient(to right, #1C7293, #065a82)'  }}>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>Athlete Details</Typography>
-              </Box>
-              <CardContent sx={{ p: 0 }}>
-                <Box sx={{ display: 'flex', p: 3, borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
-                  <Avatar 
-                    src={getAthleteImage(athlete.id)}
-                    alt={athlete.name}
-                    sx={{ width: 80, height: 80, mr: 3 }}
-                  />
-                  <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>{athlete.name}</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Avatar 
-                        src={getSportIcon(athlete.sport)}
-                        alt={athlete.sport}
-                        sx={{ width: 24, height: 24, mr: 1 }}
-                      />
-                      <Typography variant="h6" color="primary">{athlete.sport}</Typography>
-                    </Box>
-                  </Box>
-                </Box>
-                
-                <List>
-                  <ListItem sx={{ py: 2 }}>
-                    <DescriptionIcon color="action" sx={{ mr: 2 }} />
-                    <ListItemText 
-                      primary="Bio" 
-                      secondary={athlete.bio || 'No bio information available.'}
-                      primaryTypographyProps={{ fontWeight: 'medium', color: 'text.secondary' }}
-                      secondaryTypographyProps={{ fontWeight: 'bold', color: 'text.primary', fontSize: '1rem' }}
-                    />
-                  </ListItem>
-                  <Divider variant="inset" component="li" sx={{ ml: 6 }} />
-                  
-                  <ListItem sx={{ py: 2 }}>
-                    <SchoolIcon color="action" sx={{ mr: 2 }} />
-                    <ListItemText 
-                      primary="School" 
-                      secondary={getSchoolName(athlete.schoolId)} 
-                      primaryTypographyProps={{ fontWeight: 'medium', color: 'text.secondary' }}
-                      secondaryTypographyProps={{ fontWeight: 'bold', color: 'text.primary', fontSize: '1rem' }}
-                    />
-                  </ListItem>
-                  <Divider variant="inset" component="li" sx={{ ml: 6 }} />
-                  
-                  <ListItem sx={{ py: 2 }}>
-                    <PersonIcon color="action" sx={{ mr: 2 }} />
-                    <ListItemText 
-                      primary="Coach" 
-                      secondary={getCoachName(athlete.coachId)} 
-                      primaryTypographyProps={{ fontWeight: 'medium', color: 'text.secondary' }}
-                      secondaryTypographyProps={{ fontWeight: 'bold', color: 'text.primary', fontSize: '1rem' }}
-                    />
-                  </ListItem>
-                  <Divider variant="inset" component="li" sx={{ ml: 6 }} />
-                  
-                  <ListItem sx={{ py: 2 }}>
-                    <EmailIcon color="action" sx={{ mr: 2 }} />
-                    <ListItemText 
-                      primary="Email" 
-                      secondary={athlete.email} 
-                      primaryTypographyProps={{ fontWeight: 'medium', color: 'text.secondary' }}
-                      secondaryTypographyProps={{ fontWeight: 'bold', color: 'text.primary', fontSize: '1rem' }}
-                    />
-                  </ListItem>
-                  <Divider variant="inset" component="li" sx={{ ml: 6 }} />
-                  
-                  <ListItem sx={{ py: 2 }}>
-                    <PhoneIcon color="action" sx={{ mr: 2 }} />
-                    <ListItemText 
-                      primary="Phone" 
-                      secondary={athlete.phone || 'No phone number'} 
-                      primaryTypographyProps={{ fontWeight: 'medium', color: 'text.secondary' }}
-                      secondaryTypographyProps={{ fontWeight: 'bold', color: 'text.primary', fontSize: '1rem' }}
-                    />
-                  </ListItem>
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid item xs={12} md={5} >
-            <Card elevation={3} sx={{ mb: 3, borderRadius: '12px', overflow: 'hidden' }}>
-              <Box sx={{ p: 3, background: 'linear-gradient(to right, #1C7293, #065a82)' }}>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>Performance Summary</Typography>
-              </Box>
-              <CardContent sx={{ p: 3 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Box sx={{ 
-                      textAlign: 'center', 
-                      p: 2, 
-                      borderRadius: '8px', 
-                      bgcolor: 'rgba(28, 114, 147, 0.1)',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center'
-                    }}>
-                      <Typography variant="h4" color="primary" sx={{ mb: 1, fontWeight: 'bold' }}>{athleteGroups.length}</Typography>
-                      <Typography variant="body1" color="text.secondary">Teams</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box sx={{ 
-                      textAlign: 'center', 
-                      p: 2, 
-                      borderRadius: '8px', 
-                      bgcolor: 'rgba(28, 114, 147, 0.1)',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center'
-                    }}>
-                      <Typography variant="h4" color="primary" sx={{ mb: 1, fontWeight: 'bold' }}>{athleteEvents.length}</Typography>
-                      <Typography variant="body1" color="text.secondary">Events</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box sx={{ 
-                      textAlign: 'center', 
-                      p: 2, 
-                      borderRadius: '8px', 
-                      bgcolor: 'rgba(76, 175, 80, 0.1)',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center'
-                    }}>
-                      <Typography variant="h4" color="success.main" sx={{ mb: 1, fontWeight: 'bold' }}>{attendedEvents}</Typography>
-                      <Typography variant="body1" color="text.secondary">Attended</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6} >
-                    <Box sx={{ 
-                      textAlign: 'center', 
-                      p: 2, 
-                      borderRadius: '8px', 
-                      bgcolor: 'rgba(244, 67, 54, 0.1)',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center'
-                    }}>
-                      <Typography variant="h4" color="error.main" sx={{ mb: 1, fontWeight: 'bold' }}>{missedEvents}</Typography>
-                      <Typography variant="body1" color="text.secondary">Missed</Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-            
-            <Card elevation={3} sx={{ borderRadius: '12px' }}>
-              <Box sx={{ p: 3, background: 'linear-gradient(to right, #1C7293, #065a82)' }}>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>Attendance Rate</Typography>
-              </Box>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Box 
-                    sx={{ 
-                      position: 'relative',
-                      width: 140,
-                      height: 140,
-                      borderRadius: '50%',
-                      border: '10px solid',
-                      borderColor: 'rgba(0, 0, 0, 0.08)',
-                      mb: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: -10,
-                        left: -10,
-                        width: 140,
-                        height: 140,
-                        borderRadius: '50%',
-                        border: '10px solid',
-                        borderColor: attendedEvents > 0 ? 'success.main' : 'grey.300',
-                        borderRightColor: 'transparent',
-                        borderBottomColor: 'transparent',
-                        transform: `rotate(${athleteEvents.length > 0 ? 
-                          (Math.round((attendedEvents / athleteEvents.length) * 100) * 3.6) : 0}deg)`,
-                        transition: 'transform 1s ease-out'
-                      }
-                    }}
-                  >
-                    <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold' }}>
-                      {athleteEvents.length > 0 
-                        ? Math.round((attendedEvents / athleteEvents.length) * 100) 
-                        : 0}<Typography component="span" variant="h6">%</Typography>
-                    </Typography>
-                  </Box>
-                  <Typography variant="body1" sx={{ fontWeight: 'medium', textAlign: 'center' }}>
-                    {attendedEvents} out of {athleteEvents.length} events attended
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 2 }}>
-                    {missedEvents} events missed
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-                    <Chip 
-                      icon={<CheckCircleIcon />} 
-                      label="Attended" 
-                      color="success" 
-                      size="small"
-                      variant="outlined"
-                    />
-                    <Chip 
-                      icon={<CancelIcon />} 
-                      label="Missed" 
-                      color="error" 
-                      size="small"
-                      variant="outlined"
-                    />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-        </Grid>
-      </TabPanel>
-
       {/* Teams Tab */}
-      <TabPanel value={tabValue} index={1}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sx={{  width: "100%" }}>
-            <Card elevation={3} sx={{ borderRadius: '12px', overflow: 'hidden'  }}>
-              <Box sx={{ p: 3, background: 'linear-gradient(to right, #1C7293, #065a82)' }}>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                  <GroupIcon sx={{ mr: 1 }} /> Teams ({athleteGroups.length})
+      <TabPanel value={tabValue} index={0}>
+        <Grid container spacing={1.5}>
+          <Grid item xs={12} sx={{ width: "100%" }}>
+            <Card elevation={1} sx={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.04)' }}>
+              <Box sx={{ p: 1.5, background: 'linear-gradient(to right, #1C7293, #065a82)' }}>
+                <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 'medium', display: 'flex', alignItems: 'center' }}>
+                  <GroupIcon sx={{ mr: 1, fontSize: 18 }} /> Teams ({athleteGroups.length})
                 </Typography>
               </Box>
               <CardContent sx={{ p: 0 }}>
@@ -1020,50 +836,52 @@ function AthleteDetail() {
                         <Box 
                           key={group.id} 
                           sx={{ 
-                            p: 3, 
-                            borderRadius: index === athleteGroups.length - 1 ? '0 0 12px 12px' : 0,
-                            borderBottom: index !== athleteGroups.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none',
-                            transition: 'all 0.3s ease',
+                            p: 1.5, 
+                            borderRadius: index === athleteGroups.length - 1 ? '0 0 8px 8px' : 0,
+                            borderBottom: index !== athleteGroups.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+                            transition: 'all 0.2s ease',
                             position: 'relative',
                             '&:hover': {
-                              bgcolor: 'rgba(28, 114, 147, 0.05)',
-                              transform: 'translateY(-2px)',
-                              boxShadow: '0 4px 8px rgba(0,0,0,0.05)'
+                              bgcolor: 'rgba(28, 114, 147, 0.02)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                             }
                           }}
                         >
-                          <Grid container spacing={3} alignItems="center">
+                          <Grid container spacing={1.5} alignItems="center">
                             <Grid item xs={12} sm={5} md={4}>
                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Avatar 
                                   sx={{ 
                                     bgcolor: bgColor, 
-                                    width: 60, 
-                                    height: 60,
-                                    mr: 2,
-                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                                    width: 36, 
+                                    height: 36,
+                                    mr: 1.5,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                                    fontSize: '0.875rem'
                                   }}
                                 >
                                   {group.name.substring(0, 2).toUpperCase()}
                                 </Avatar>
                                 <Box>
-                                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.25, fontSize: '0.9rem' }}>
                                     {group.name}
                                   </Typography>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75 }}>
                                     <Chip
-                                      icon={<PersonIcon />}
+                                      icon={<PersonIcon sx={{ fontSize: 14 }} />}
                                       label={`${group.athletes ? group.athletes.length : 0} Members`}
                                       size="small"
-                                      sx={{ bgcolor: 'rgba(0,0,0,0.05)' }}
+                                      sx={{ bgcolor: 'rgba(0,0,0,0.02)', height: 20, '& .MuiChip-label': { fontSize: '0.7rem', px: 0.75 } }}
                                     />
                                     {upcomingEvents.length > 0 && (
                                       <Chip
-                                        icon={<EventIcon />}
+                                        icon={<EventIcon sx={{ fontSize: 14 }} />}
                                         label={`${upcomingEvents.length} Upcoming`}
                                         size="small"
                                         color="primary"
                                         variant="outlined"
+                                        sx={{ height: 20, '& .MuiChip-label': { fontSize: '0.7rem', px: 0.75 } }}
                                       />
                                     )}
                                   </Box>
@@ -1077,19 +895,19 @@ function AthleteDetail() {
                                 flexDirection: 'column', 
                                 height: '100%', 
                                 justifyContent: 'center',
-                                px: { xs: 0, sm: 2 },
-                                py: { xs: 2, sm: 0 },
-                                borderLeft: { xs: 'none', sm: '1px solid rgba(0,0,0,0.05)' },
-                                borderRight: { xs: 'none', sm: '1px solid rgba(0,0,0,0.05)' }
+                                px: { xs: 0, sm: 0.75 },
+                                py: { xs: 0.75, sm: 0 },
+                                borderLeft: { xs: 'none', sm: '1px solid rgba(0,0,0,0.02)' },
+                                borderRight: { xs: 'none', sm: '1px solid rgba(0,0,0,0.02)' }
                               }}>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
                                   Coach
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <Avatar sx={{ width: 24, height: 24, mr: 1, bgcolor: bgColor, fontSize: '0.8rem' }}>
+                                  <Avatar sx={{ width: 18, height: 18, mr: 0.75, bgcolor: bgColor, fontSize: '0.65rem' }}>
                                     {groupCoach ? groupCoach.name.charAt(0) : 'C'}
                                   </Avatar>
-                                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
                                     {groupCoach ? groupCoach.name : 'Not Assigned'}
                                   </Typography>
                                 </Box>
@@ -1097,22 +915,22 @@ function AthleteDetail() {
                             </Grid>
                             
                             <Grid item xs={12} sm={4} md={5}>
-                              <Grid container spacing={2}>
+                              <Grid container spacing={1.5}>
                                 <Grid item xs={6}>
                                   <Box sx={{ 
-                                    bgcolor: 'rgba(28, 114, 147, 0.1)', 
-                                    borderRadius: '12px',
-                                    p: 2,
+                                    bgcolor: 'rgba(28, 114, 147, 0.04)', 
+                                    borderRadius: '6px',
+                                    p: 0.75,
                                     height: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     justifyContent: 'center'
                                   }}>
-                                    <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                                    <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 600, mb: 0, fontSize: '1rem', lineHeight: 1.2 }}>
                                       {upcomingEvents.length}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', fontSize: '0.7rem' }}>
                                       Upcoming Events
                                     </Typography>
                                   </Box>
@@ -1120,8 +938,8 @@ function AthleteDetail() {
                                 
                                 <Grid item xs={6}>
                                   <Box sx={{ 
-                                    borderRadius: '12px',
-                                    p: 2,
+                                    borderRadius: '6px',
+                                    p: 0.75,
                                     height: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -1129,7 +947,8 @@ function AthleteDetail() {
                                     justifyContent: 'center',
                                     position: 'relative',
                                     overflow: 'hidden',
-                                    bgcolor: 'rgba(0,0,0,0.02)',
+                                    bgcolor: 'rgba(0,0,0,0.01)',
+                                    border: '1px solid rgba(0,0,0,0.03)',
                                     '&::before': {
                                       content: '""',
                                       position: 'absolute',
@@ -1139,24 +958,24 @@ function AthleteDetail() {
                                       height: `${totalEvents > 0 ? (attendedGroupEvents / totalEvents) * 100 : 0}%`,
                                       bgcolor: totalEvents > 0 
                                         ? (attendedGroupEvents / totalEvents) > 0.7 
-                                          ? 'rgba(76, 175, 80, 0.2)' 
-                                          : 'rgba(255, 152, 0, 0.2)'
+                                          ? 'rgba(76, 175, 80, 0.08)' 
+                                          : 'rgba(255, 152, 0, 0.08)'
                                         : 'transparent',
-                                      transition: 'height 1s ease-out'
+                                      transition: 'height 0.6s ease-out'
                                     }
                                   }}>
-                                    <Typography variant="h4" color={
+                                    <Typography variant="subtitle1" color={
                                       totalEvents > 0 
                                         ? (attendedGroupEvents / totalEvents) > 0.7 
                                           ? 'success.main' 
                                           : 'warning.main'
                                         : 'text.secondary'
-                                    } sx={{ fontWeight: 'bold', mb: 0.5, position: 'relative', zIndex: 1 }}>
+                                    } sx={{ fontWeight: 600, mb: 0, position: 'relative', zIndex: 1, fontSize: '1rem', lineHeight: 1.2 }}>
                                       {totalEvents > 0 
                                         ? Math.round((attendedGroupEvents / totalEvents) * 100) 
                                         : 0}%
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', position: 'relative', zIndex: 1, fontSize: '0.7rem' }}>
                                       Attendance Rate
                                     </Typography>
                                   </Box>
@@ -1169,33 +988,35 @@ function AthleteDetail() {
                     })}
                   </Box>
                 ) : (
-                  <Box sx={{ p: 5, textAlign: 'center' }}>
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
                     <Box 
                       sx={{ 
-                        width: 80, 
-                        height: 80, 
+                        width: 48, 
+                        height: 48, 
                         borderRadius: '50%', 
-                        bgcolor: 'rgba(28, 114, 147, 0.1)', 
+                        bgcolor: 'rgba(28, 114, 147, 0.08)', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
                         mx: 'auto',
-                        mb: 2
+                        mb: 1.5
                       }}
                     >
-                      <GroupIcon sx={{ color: '#1C7293', fontSize: 40 }} />
+                      <GroupIcon sx={{ color: '#1C7293', fontSize: 24 }} />
                     </Box>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                       No Teams Found
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto', mb: 3 }}>
-                      This athlete is not part of any team yet. Teams allow you to group athletes together for practices, matches, and other events.
+                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 250, mx: 'auto', mb: 1.5, fontSize: '0.8rem' }}>
+                      This athlete is not part of any team yet.
                     </Typography>
                     <Button 
                       variant="outlined" 
                       color="primary" 
-                      startIcon={<GroupIcon />}
+                      startIcon={<GroupIcon sx={{ fontSize: 16 }} />}
                       onClick={() => navigate('/groups')}
+                      size="small"
+                      sx={{ textTransform: 'none', fontSize: '0.8rem', borderRadius: '6px' }}
                     >
                       View All Teams
                     </Button>
@@ -1208,13 +1029,13 @@ function AthleteDetail() {
       </TabPanel>
 
       {/* Events Tab */}
-      <TabPanel value={tabValue} index={2}>
-        <Grid container spacing={3} sx={{width: "100%", display: "flex", justifyContent: "space-between"}}>
-          <Grid item xs={12} sx={{  width: "100%" }}>
-            <Card elevation={3} sx={{ borderRadius: '12px', overflow: 'hidden' }}>
-              <Box sx={{ p: 3, background: 'linear-gradient(to right, #1C7293, #065a82)' }}>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                  <EventIcon sx={{ mr: 1 }} /> Events ({athleteEvents.length})
+      <TabPanel value={tabValue} index={1}>
+        <Grid container spacing={1.5}>
+          <Grid item xs={12} sx={{ width: "100%" }}>
+            <Card elevation={1} sx={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.04)' }}>
+              <Box sx={{ p: 1.5, background: 'linear-gradient(to right, #1C7293, #065a82)' }}>
+                <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 'medium', display: 'flex', alignItems: 'center' }}>
+                  <EventIcon sx={{ mr: 1, fontSize: 18 }} /> Events ({athleteEvents.length})
                 </Typography>
               </Box>
               <CardContent sx={{ p: 0 }}>
@@ -1245,17 +1066,17 @@ function AthleteDetail() {
                           key={event.id}
                           sx={{ 
                             p: 0,
-                            borderBottom: index !== athleteEvents.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none',
-                            transition: 'all 0.3s ease',
+                            borderBottom: index !== athleteEvents.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+                            transition: 'all 0.2s ease',
                             position: 'relative',
                             overflow: 'hidden',
                             '&:hover': {
-                              bgcolor: 'rgba(28, 114, 147, 0.03)'
+                              bgcolor: 'rgba(28, 114, 147, 0.01)'
                             }
                           }}
                         >
                           <Box sx={{ 
-                            width: 4, 
+                            width: 2, 
                             height: '100%', 
                             position: 'absolute', 
                             left: 0, 
@@ -1271,32 +1092,32 @@ function AthleteDetail() {
                             }}
                           >
                             <AccordionSummary 
-                              expandIcon={<ExpandMoreIcon />}
-                              sx={{ px: 3, py: 2, ml: 1 }}
+                              expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}
+                              sx={{ px: 1.5, py: 0.75, ml: 1 }}
                             >
-                              <Grid container alignItems="center" spacing={2}>
+                              <Grid container alignItems="center" spacing={1}>
                                 <Grid item xs={12} md={5}>
                                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Avatar 
                                       sx={{ 
                                         bgcolor: `${statusColor}.light`, 
                                         color: `${statusColor}.dark`,
-                                        width: 48, 
-                                        height: 48,
-                                        mr: 2
+                                        width: 28, 
+                                        height: 28,
+                                        mr: 1
                                       }}
                                     >
                                       {isPast ? (
-                                        attended ? <CheckCircleIcon /> : <CancelIcon />
+                                        attended ? <CheckCircleIcon sx={{ fontSize: 16 }} /> : <CancelIcon sx={{ fontSize: 16 }} />
                                       ) : (
-                                        <EventIcon />
+                                        <EventIcon sx={{ fontSize: 16 }} />
                                       )}
                                     </Avatar>
                                     <Box>
-                                      <Typography variant="h6" sx={{ fontWeight: 'medium', mb: 0.5 }}>
+                                      <Typography variant="subtitle2" sx={{ fontWeight: 500, mb: 0, fontSize: '0.85rem' }}>
                                         {event.title}
                                       </Typography>
-                                      <Typography variant="body2" color="text.secondary">
+                                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
                                         {formattedDate}
                                       </Typography>
                                     </Box>
@@ -1305,8 +1126,8 @@ function AthleteDetail() {
                                 
                                 <Grid item xs={6} md={3}>
                                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <GroupIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                                    <Typography variant="body2" color="text.secondary">
+                                    <GroupIcon sx={{ color: 'text.secondary', mr: 0.5, fontSize: 14 }} />
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                                       {group ? group.name : 'Unknown Team'}
                                     </Typography>
                                   </Box>
@@ -1314,8 +1135,8 @@ function AthleteDetail() {
                                 
                                 <Grid item xs={6} md={2}>
                                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <TimeIcon color="text.secondary" sx={{ mr: 1, fontSize: 20 }} />
-                                    <Typography variant="body2" color="text.secondary">
+                                    <TimeIcon color="text.secondary" sx={{ mr: 0.5, fontSize: 14 }} />
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                                       {event.startTime} - {event.endTime}
                                     </Typography>
                                   </Box>
@@ -1325,9 +1146,9 @@ function AthleteDetail() {
                                   <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                                     <Chip 
                                       icon={
-                                        !isPast ? <EventIcon /> : 
-                                        attended ? <CheckCircleIcon /> : 
-                                        <CancelIcon />
+                                        !isPast ? <EventIcon sx={{ fontSize: 14 }} /> : 
+                                        attended ? <CheckCircleIcon sx={{ fontSize: 14 }} /> : 
+                                        <CancelIcon sx={{ fontSize: 14 }} />
                                       }
                                       label={
                                         !isPast ? "Upcoming" : 
@@ -1337,31 +1158,32 @@ function AthleteDetail() {
                                       color={statusColor}
                                       size="small"
                                       variant={isPast ? "filled" : "outlined"}
+                                      sx={{ height: 20, '& .MuiChip-label': { fontSize: '0.7rem', px: 0.75 } }}
                                     />
                                   </Box>
                                 </Grid>
                               </Grid>
                             </AccordionSummary>
                             
-                            <AccordionDetails sx={{ px: 3, py: 2, bgcolor: 'rgba(0,0,0,0.02)', borderTop: '1px dashed rgba(0,0,0,0.1)', ml: 1 }}>
-                              <Grid container spacing={3}>
+                            <AccordionDetails sx={{ px: 1.5, py: 1, bgcolor: 'rgba(0,0,0,0.01)', borderTop: '1px dashed rgba(0,0,0,0.04)', ml: 1 }}>
+                              <Grid container spacing={1.5}>
                                 <Grid item xs={12}>
-                                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                  <Typography variant="caption" color="text.secondary" gutterBottom sx={{ fontSize: '0.7rem', display: 'block' }}>
                                     Description
                                   </Typography>
-                                  <Typography variant="body2" paragraph>
+                                  <Typography variant="body2" paragraph sx={{ mb: 0.75, fontSize: '0.8rem' }}>
                                     {event.description || 'No description provided.'}
                                   </Typography>
                                 </Grid>
                                 
                                 <Grid item xs={12} md={6}>
-                                  <Box sx={{ mb: 2 }}>
-                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                  <Box sx={{ mb: 0.75 }}>
+                                    <Typography variant="caption" color="text.secondary" gutterBottom display="block" sx={{ fontSize: '0.7rem' }}>
                                       Date & Time
                                     </Typography>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                      <EventIcon color="action" sx={{ mr: 1 }} />
-                                      <Typography variant="body2">
+                                      <EventIcon color="action" sx={{ mr: 0.5, fontSize: 14 }} />
+                                      <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                                         {eventDate.toLocaleDateString('en-US', {
                                           weekday: 'long',
                                           year: 'numeric',
@@ -1370,9 +1192,9 @@ function AthleteDetail() {
                                         })}
                                       </Typography>
                                     </Box>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                                      <TimeIcon color="action" sx={{ mr: 1 }} />
-                                      <Typography variant="body2">
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.25 }}>
+                                      <TimeIcon color="action" sx={{ mr: 0.5, fontSize: 14 }} />
+                                      <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                                         {event.startTime} - {event.endTime}
                                       </Typography>
                                     </Box>
@@ -1380,28 +1202,28 @@ function AthleteDetail() {
                                 </Grid>
                                 
                                 <Grid item xs={12} md={6}>
-                                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                  <Typography variant="caption" color="text.secondary" gutterBottom display="block" sx={{ fontSize: '0.7rem' }}>
                                     Team
                                   </Typography>
                                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <GroupIcon color="action" sx={{ mr: 1 }} />
-                                    <Typography variant="body2">
+                                    <GroupIcon color="action" sx={{ mr: 0.5, fontSize: 14 }} />
+                                    <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                                       {group ? group.name : 'Unknown Team'}
                                     </Typography>
                                   </Box>
                                   
                                   {isPast && (
-                                    <Box sx={{ mt: 2 }}>
-                                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    <Box sx={{ mt: 0.75 }}>
+                                      <Typography variant="caption" color="text.secondary" gutterBottom display="block" sx={{ fontSize: '0.7rem' }}>
                                         Attendance
                                       </Typography>
                                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                         {attended ? (
-                                          <CheckCircleIcon color="success" sx={{ mr: 1 }} />
+                                          <CheckCircleIcon color="success" sx={{ mr: 0.5, fontSize: 14 }} />
                                         ) : (
-                                          <CancelIcon color="error" sx={{ mr: 1 }} />
+                                          <CancelIcon color="error" sx={{ mr: 0.5, fontSize: 14 }} />
                                         )}
-                                        <Typography variant="body2" color={attended ? 'success.main' : 'error.main'}>
+                                        <Typography variant="body2" color={attended ? 'success.main' : 'error.main'} sx={{ fontSize: '0.8rem' }}>
                                           {attended ? 'You attended this event' : 'You missed this event'}
                                         </Typography>
                                       </Box>
@@ -1416,26 +1238,26 @@ function AthleteDetail() {
                     })}
                   </Box>
                 ) : (
-                  <Box sx={{ p: 5, textAlign: 'center' }}>
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
                     <Box 
                       sx={{ 
-                        width: 80, 
-                        height: 80, 
+                        width: 48, 
+                        height: 48, 
                         borderRadius: '50%', 
-                        bgcolor: 'rgba(28, 114, 147, 0.1)', 
+                        bgcolor: 'rgba(28, 114, 147, 0.08)', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
                         mx: 'auto',
-                        mb: 2
+                        mb: 1.5
                       }}
                     >
-                      <EventIcon sx={{ color: '#1C7293', fontSize: 40 }} />
+                      <EventIcon sx={{ color: '#1C7293', fontSize: 24 }} />
                     </Box>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                       No Events Found
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 250, mx: 'auto', fontSize: '0.8rem' }}>
                       There are no events scheduled for this athlete yet.
                     </Typography>
                   </Box>

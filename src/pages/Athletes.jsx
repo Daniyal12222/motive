@@ -4,7 +4,8 @@ import {
   Box, Button, Paper, Typography, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, Grid,
-  MenuItem, Select, InputLabel, FormControl, Avatar, FormHelperText
+  MenuItem, Select, InputLabel, FormControl, Avatar, FormHelperText,
+  TablePagination, TableFooter
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, FilterList as FilterIcon } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
@@ -34,8 +35,11 @@ function Athletes() {
   const [open, setOpen] = useState(false);
   const [editAthlete, setEditAthlete] = useState(null);
   const [selectedSchool, setSelectedSchool] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     sport: '',
     schoolId: '',
@@ -66,7 +70,8 @@ function Athletes() {
     setOpen(false);
     setEditAthlete(null);
     setFormData({
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       sport: '',
       schoolId: '',
@@ -96,15 +101,40 @@ function Athletes() {
     setSelectedSchool(e.target.value);
   };
 
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   // Filter athletes by selected school
   const filteredAthletes = selectedSchool 
     ? athletes.filter(athlete => athlete.schoolId === selectedSchool)
     : athletes;
+    
+  // Get current page data
+  const currentPageAthletes = filteredAthletes.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   const handleEditClick = (athlete) => {
     setEditAthlete(athlete);
+    // Split name into firstName and lastName if it exists
+    let firstName = '', lastName = '';
+    if (athlete.name) {
+      const nameParts = athlete.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     setFormData({
-      name: athlete.name,
+      firstName,
+      lastName,
       email: athlete.email,
       sport: athlete.sport,
       schoolId: athlete.schoolId || '',
@@ -127,7 +157,8 @@ function Athletes() {
     e.preventDefault();
     
     const athleteData = {
-      ...formData
+      ...formData,
+      name: `${formData.firstName} ${formData.lastName}`.trim()
     };
     
     if (editAthlete) {
@@ -190,28 +221,23 @@ function Athletes() {
 
   return (
     <div>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        
-      </Box>
-
       {/* School Filter */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: "space-between" }}>
-          <div className='flex items-center'>
-            <FilterIcon sx={{ mr: 2, color: 'text.secondary' }} />
-            <FormControl sx={{ width: 300 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: "space-between", flexWrap: 'wrap', gap: 2 }}>
+          <div className='flex items-center flex-grow'>
+            <FormControl sx={{ width: { xs: '100%', sm: 250, md: 300 }, maxWidth: '100%' }} size="small">
               <Select
                 id="school-filter"
                 value={selectedSchool}
-                
                 onChange={handleSchoolFilterChange}
                 displayEmpty
+                sx={{ fontSize: '0.875rem' }}
               >
-                <MenuItem value="">
-                  <em>All Schools</em>
+                <MenuItem value="" sx={{ fontSize: '0.875rem' }}>
+                  <Typography>All Schools</Typography>
                 </MenuItem>
                 {schools.map((school) => (
-                  <MenuItem key={school.id} value={school.id}>
+                  <MenuItem key={school.id} value={school.id} sx={{ fontSize: '0.875rem' }}>
                     {school.name}
                   </MenuItem>
                 ))}
@@ -223,6 +249,7 @@ function Athletes() {
             className='!bg-[#1C7293] !text-white'
             startIcon={<AddIcon />}
             onClick={handleOpen}
+            sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
           >
             Add Athlete
           </Button>
@@ -243,7 +270,7 @@ function Athletes() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredAthletes.map((athlete) => (
+            {currentPageAthletes.map((athlete) => (
               <TableRow 
                 key={athlete.id}
                 onClick={() => handleRowClick(athlete.id)}
@@ -261,16 +288,38 @@ function Athletes() {
                     sx={{ width: 40, height: 40 }}
                   />
                 </TableCell>
-                <TableCell>{athlete.name}</TableCell>
-                <TableCell>{athlete.sport}</TableCell>
-                <TableCell>{getSchoolName(athlete.schoolId)}</TableCell>
-                <TableCell>{getCoachName(athlete.coachId)}</TableCell>
-                <TableCell>{athlete.email}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem' }}>{athlete.name}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem' }}>{athlete.sport}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem' }}>{getSchoolName(athlete.schoolId)}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem' }}>{getCoachName(athlete.coachId)}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem' }}>{athlete.email}</TableCell>
               </TableRow>
             ))}
+            {currentPageAthletes.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  No athletes found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="td"
+                count={filteredAthletes.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
+                sx={{
+                  '& .MuiToolbar-root': {
+                    justifyContent: 'flex-start',
+                  }
+                }}
+              />
 
       {/* Add/Edit Athlete Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -347,8 +396,8 @@ function Athletes() {
                             component="label"
                             sx={{ 
                               position: 'absolute',
-                              bottom: 0,
-                              right: 0,
+                              bottom: 12,
+                              right: -2,
                               borderRadius: '50%', 
                               minWidth: 'auto',
                               padding: '4px',
@@ -373,20 +422,38 @@ function Athletes() {
                   </Box>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sx={{width: '48%'}}>
+              <Grid item xs={12} sm={6} sx={{width: '48%'}}>
                 <TextField
                   autoFocus
                   margin="dense"
-                  name="name"
-                  label="Full Name"
+                  name="firstName"
+                  label="First Name"
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.name}
+                  value={formData.firstName}
                   onChange={handleChange}
                   required
-                  helperText="Enter the athlete's full name"
-                  placeholder="John Doe"
+                  helperText="Enter the athlete's first name"
+                  placeholder="John"
+                  InputProps={{
+                    sx: { borderRadius: 1.5 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{width: '48%'}}>
+                <TextField
+                  margin="dense"
+                  name="lastName"
+                  label="Last Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  required
+                  helperText="Enter the athlete's last name"
+                  placeholder="Doe"
                   InputProps={{
                     sx: { borderRadius: 1.5 }
                   }}
@@ -427,7 +494,7 @@ function Athletes() {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} sx={{width: '48%'}}>
+              <Grid item xs={12} sm={6} sx={{width: '48%'}}>
                 <FormControl fullWidth margin="dense">
                   <InputLabel id="sport-label">Sport</InputLabel>
                   <Select
@@ -459,7 +526,7 @@ function Athletes() {
                   <FormHelperText>Select the athlete's primary sport</FormHelperText>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6} sx={{width: '100%'}}>
+              <Grid item xs={12} sm={6} sx={{width: '48%'}}>
                 <FormControl fullWidth margin="dense">
                   <InputLabel id="coach-label">Coach</InputLabel>
                   <Select

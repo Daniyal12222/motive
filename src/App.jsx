@@ -17,7 +17,7 @@ import Groups from './pages/Groups';
 import Schools from './pages/Schools';
 import GroupDetail from './pages/teamsDetail';
 import SchoolDetail from './pages/schoolDetail';
-import Profile from './pages/profile';
+import AdminProfile from './pages/AdminProfile';
 import ForgotPassword from './pages/forgetPassword';
 // Context
 import { AppProvider, useAppContext } from './context/AppContext';
@@ -134,7 +134,7 @@ function AppContent() {
           <Route path="/group/:groupId" element={<GroupDetail />} />
           <Route path="schools" element={<Schools />} />
           <Route path="/school/:schoolId" element={<SchoolDetail/>} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<AdminProfile />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

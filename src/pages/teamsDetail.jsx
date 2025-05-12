@@ -24,7 +24,7 @@ const groupData = [
       phone: '555-123-4567',
       university: 'Central University',
       title: 'Basketball Coach',
-      image: 'https://picsum.photos/100/100?1',
+      image: 'https://picsum.photos/80/80?1',
     },
     teams: 1,
     athletes: [
@@ -42,7 +42,7 @@ const groupData = [
       phone: '555-987-6543',
       university: 'West College',
       title: 'Soccer Coach',
-      image: 'https://picsum.photos/100/100?2',
+      image: 'https://picsum.photos/80/80?2',
     },
     teams: 2,
     athletes: [
@@ -61,12 +61,13 @@ export default function GroupPage() {
   };
 
   return (
-    <Box p={4} sx={{ maxWidth: 1200, margin: '0 auto' }}>
+    <Box p={2} sx={{ maxWidth: 900, margin: '0 auto' }}>
       <Button
         startIcon={<ArrowBackIcon />}
         onClick={handleGoBack}
+        size="small"
         sx={{ 
-          mb: 3,
+          mb: 2,
           borderRadius: 2,
           color: '#1C7293'
         }}
@@ -77,20 +78,19 @@ export default function GroupPage() {
       {!selectedGroup ? (
         <>
           <Typography 
-            variant="h5" 
-            className='p-3 rounded-lg !bg-gradient-to-r !from-[#1C7293] !to-[#065A82] text-white shadow-md mb-4 flex items-center'
-            gutterBottom
+            variant="h6" 
+            className='p-2 rounded-lg !bg-gradient-to-r !from-[#1C7293] !to-[#065A82] text-white shadow-md mb-3 flex items-center'
           >
-            <GroupsIcon sx={{ mr: 1 }} /> Teams List
+            <GroupsIcon sx={{ mr: 1, fontSize: 18 }} /> Teams List
           </Typography>
-          <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-            <Table>
+          <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Table size="small">
               <TableHead sx={{ bgcolor: '#f5f5f5' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Team Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Coach</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Athletes</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Events</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Team Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Coach</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Athletes</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Events</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -103,31 +103,31 @@ export default function GroupPage() {
                       transition: 'all 0.2s',
                       '&:hover': { 
                         bgcolor: '#f0f7ff',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                       }
                     }}
                     onClick={() => setSelectedGroup(group)}
                   >
-                    <TableCell sx={{ fontWeight: 'medium' }}>{group.name}</TableCell>
-                    <TableCell>
+                    <TableCell sx={{ fontWeight: 'medium', py: 1 }}>{group.name}</TableCell>
+                    <TableCell sx={{ py: 1 }}>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Avatar src={group.coach.image} sx={{ width: 30, height: 30, marginRight: 1 }} />
-                        {group.coach.name}
+                        <Avatar src={group.coach.image} sx={{ width: 24, height: 24, marginRight: 1 }} />
+                        <Typography sx={{ fontSize: '0.75rem' }}>{group.coach.name}</Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ py: 1 }}>
                       <Chip 
-                        icon={<PersonIcon />} 
+                        icon={<PersonIcon sx={{ fontSize: 16 }} />} 
                         label={group.athletes.length} 
                         size="small" 
                         color="primary" 
                         variant="outlined" 
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ py: 1 }}>
                       <Chip 
-                        icon={<EventIcon />} 
+                        icon={<EventIcon sx={{ fontSize: 16 }} />} 
                         label={group.events} 
                         size="small" 
                         color="secondary" 
@@ -142,29 +142,19 @@ export default function GroupPage() {
         </>
       ) : (
         <>
-         
-
-          <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-            <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'start', sm: 'center' }} gap={2}>
+          <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+            <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'start', sm: 'center' }} gap={1}>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>{`Coach ${selectedGroup.coach.name}`}</Typography>
-                <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <WorkIcon sx={{ mr: 1, fontSize: 20 }} />
+                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>{`Coach ${selectedGroup.coach.name}`}</Typography>
+                <Typography variant="subtitle1" color="primary" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <WorkIcon sx={{ mr: 1, fontSize: 16 }} />
                   {selectedGroup.coach.title}
                 </Typography>
 
-                <Stack spacing={1.5} mt={2}>
+                <Stack spacing={1} mt={1}>
                   <Box display="flex" alignItems="center">
-                    <EmailIcon color="action" sx={{ mr: 1 }} />
-                    <Typography>{selectedGroup.coach.email}</Typography>
-                  </Box>
-                  <Box display="flex" alignItems="center">
-                    <SchoolIcon color="action" sx={{ mr: 1 }} />
-                    <Typography>{selectedGroup.coach.university}</Typography>
-                  </Box>
-                  <Box display="flex" alignItems="center">
-                    <PhoneIcon color="action" sx={{ mr: 1 }} />
-                    <Typography>{selectedGroup.coach.phone}</Typography>
+                    <SchoolIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">{selectedGroup.coach.university}</Typography>
                   </Box>
                 </Stack>
               </Box>
@@ -172,41 +162,44 @@ export default function GroupPage() {
                 src={selectedGroup.coach.image}
                 alt={selectedGroup.coach.name}
                 sx={{ 
-                  width: 120, 
-                  height: 120, 
-                  border: '4px solid #f0f7ff',
-                  boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                  width: 80, 
+                  height: 80, 
+                  border: '3px solid #f0f7ff',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                 }}
               />
             </Box>
             
-            <Divider sx={{ my: 3 }} />
+            <Divider sx={{ my: 2 }} />
 
             <Stack 
               direction={{ xs: 'column', sm: 'row' }} 
-              spacing={2} 
-              mt={3}
+              spacing={1} 
+              mt={2}
               sx={{ justifyContent: { xs: 'center', sm: 'flex-start' } }}
             >
               <Button 
-                variant="contained" 
-                startIcon={<SportsTennisIcon />}
+                variant="contained"
+                size="small" 
+                startIcon={<SportsTennisIcon sx={{ fontSize: 16 }} />}
                 sx={{ borderRadius: 2 }}
               >
                 {selectedGroup.teams} Teams
               </Button>
               <Button 
-                variant="contained" 
+                variant="contained"
+                size="small" 
                 color="error" 
-                startIcon={<PersonIcon />}
+                startIcon={<PersonIcon sx={{ fontSize: 16 }} />}
                 sx={{ borderRadius: 2 }}
               >
                 {selectedGroup.athletes.length} Athletes
               </Button>
               <Button 
-                variant="contained" 
+                variant="contained"
+                size="small" 
                 color="secondary"
-                startIcon={<EventIcon />}
+                startIcon={<EventIcon sx={{ fontSize: 16 }} />}
                 sx={{ borderRadius: 2 }}
               >
                 {selectedGroup.events} Events
@@ -214,14 +207,14 @@ export default function GroupPage() {
             </Stack>
 
             {/* Athletes Section */}
-            <Box mt={5}>
+            <Box mt={3}>
               <Typography 
-                variant="h6" 
+                variant="subtitle1" 
                 sx={{ 
-                  borderLeft: '4px solid #1C7293', 
-                  pl: 2, 
-                  py: 1,
-                  mb: 3,
+                  borderLeft: '3px solid #1C7293', 
+                  pl: 1, 
+                  py: 0.5,
+                  mb: 2,
                   fontWeight: 'bold'
                 }}
               >
@@ -231,39 +224,40 @@ export default function GroupPage() {
                 sx={{ 
                   display: 'grid', 
                   gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
-                  gap: 3 
+                  gap: 2 
                 }}
               >
                 {selectedGroup.athletes.map((athlete) => (
                   <Card 
                     key={athlete.id} 
-                    elevation={2}
+                    elevation={1}
                     sx={{ 
                       borderRadius: 2,
                       transition: 'all 0.2s',
                       '&:hover': { 
-                        transform: 'translateY(-5px)',
-                        boxShadow: '0 8px 15px rgba(0,0,0,0.1)'
+                        transform: 'translateY(-3px)',
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                       }
                     }}
                   >
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1, px: 2, '&:last-child': { pb: 1 } }}>
                       <Avatar 
                         sx={{ 
                           bgcolor: '#1C7293', 
-                          width: 50, 
-                          height: 50,
-                          fontWeight: 'bold'
+                          width: 32, 
+                          height: 32,
+                          fontWeight: 'bold',
+                          fontSize: '0.8rem'
                         }}
                       >
                         {athlete.name.charAt(0)}
                       </Avatar>
                       <Box>
-                        <Typography variant="h6" fontWeight="bold">{athlete.name}</Typography>
+                        <Typography variant="subtitle2" fontWeight="bold">{athlete.name}</Typography>
                         <Chip
                           label={`ID: ${athlete.id}`}
                           size="small"
-                          sx={{ mt: 0.5 }}
+                          sx={{ mt: 0.5, height: 20, '& .MuiChip-label': { fontSize: '0.65rem', px: 1 } }}
                           variant="outlined"
                         />
                       </Box>

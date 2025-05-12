@@ -5,7 +5,8 @@ import {
   TableContainer, TableHead, TableRow, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, Grid,
   Select, MenuItem, FormControl, InputLabel, Chip, ListItem,
-  ListItemText, List, Checkbox, FormControlLabel, Avatar, FormHelperText
+  ListItemText, List, Checkbox, FormControlLabel, Avatar, FormHelperText,
+  TablePagination
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -23,6 +24,8 @@ function Groups() {
   const [open, setOpen] = useState(false);
   const [editGroup, setEditGroup] = useState(null);
   const [selectedSchool, setSelectedSchool] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [formData, setFormData] = useState({
     name: '',
     coachId: '',
@@ -75,6 +78,12 @@ function Groups() {
   const filteredGroups = selectedSchool 
     ? groups.filter(group => coachSchoolMap[group.coachId] === selectedSchool)
     : groups;
+    
+  // Get current page data
+  const paginatedGroups = filteredGroups.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   const handleAthleteToggle = (athleteId) => {
     const currentAthletes = [...formData.athletes];
@@ -160,25 +169,42 @@ function Groups() {
     return school ? school.name : 'Unknown School';
   };
 
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <div>
       {/* School Filter */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: "space-between" }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' }, 
+          alignItems: { xs: 'stretch', sm: 'center' }, 
+          justifyContent: "space-between",
+          gap: 2
+        }}>
           <div className='flex items-center'>
-            <FilterIcon sx={{ mr: 2, color: 'text.secondary' }} />
-            <FormControl sx={{ width: 300 }}>
+            <FormControl sx={{ width: { xs: '100%', sm: 250, md: 300 } }} size="small">
               <Select
                 id="school-filter"
                 value={selectedSchool}
                 onChange={handleSchoolFilterChange}
                 displayEmpty
+                sx={{ fontSize: '0.875rem' }}
               >
-                <MenuItem value="">
-                  <em>All Schools</em>
+                <MenuItem value="" sx={{ fontSize: '0.875rem' }}>
+                  <Typography>All Schools</Typography>
                 </MenuItem>
                 {schools.map((school) => (
-                  <MenuItem key={school.id} value={school.id}>
+                  <MenuItem key={school.id} value={school.id} sx={{ fontSize: '0.875rem' }}>
                     {school.name}
                   </MenuItem>
                 ))}
@@ -190,6 +216,7 @@ function Groups() {
             variant="contained" 
             startIcon={<AddIcon />}
             onClick={handleOpen}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             Add Team
           </Button>
@@ -200,15 +227,15 @@ function Groups() {
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
-              <TableCell>Team</TableCell>
-              <TableCell>Coach</TableCell>
-              <TableCell>School</TableCell>
-              <TableCell>Athletes</TableCell>
-              <TableCell>Events</TableCell>
+              <TableCell sx={{ fontSize: '0.8rem' }}>Team</TableCell>
+              <TableCell sx={{ fontSize: '0.8rem' }}>Coach</TableCell>
+              <TableCell sx={{ fontSize: '0.8rem' }}>School</TableCell>
+              <TableCell sx={{ fontSize: '0.8rem' }}>Athletes</TableCell>
+              <TableCell sx={{ fontSize: '0.8rem' }}>Events</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredGroups.map((group) => (
+            {paginatedGroups.map((group) => (
               <TableRow 
                 key={group.id}
                 onClick={() => handleViewGroupDetail(group.id)}
@@ -219,7 +246,7 @@ function Groups() {
                   } 
                 }}
               >
-                <TableCell>
+                <TableCell sx={{ fontSize: '0.8rem' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar 
                       sx={{ mr: 2, bgcolor: '#1C7293' }}
@@ -229,24 +256,26 @@ function Groups() {
                     {group.name}
                   </Box>
                 </TableCell>
-                <TableCell>{getCoachName(group.coachId)}</TableCell>
-                <TableCell>{getSchoolName(group.coachId)}</TableCell>
-                <TableCell>
+                <TableCell sx={{ fontSize: '0.8rem'}}>{getCoachName(group.coachId)}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem'}}>{getSchoolName(group.coachId)}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem'}}>
                   {group.athletes && group.athletes.length > 0 ? (
                     <Chip 
                       icon={<GroupIcon />} 
                       label={`${group.athletes.length} Athletes`} 
                       color="primary" 
                       variant="outlined"
+                      size="small"
                     />
                   ) : 'No athletes'}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ fontSize: '0.8rem' }}>
                   {group.events && group.events.length > 0 ? (
                     <Chip 
                       label={`${group.events.length} Events`} 
                       color="secondary" 
                       variant="outlined"
+                      size="small"
                     />
                   ) : 'No events'}
                 </TableCell>
@@ -255,6 +284,20 @@ function Groups() {
           </TableBody>
         </Table>
       </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredGroups.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{ 
+            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+              fontSize: '0.8rem'
+            }
+          }}
+        />
 
       {/* Add/Edit Group Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState  } from 'react';
 import { 
   Grid, Paper, Typography, Box, FormControl, InputLabel, Select, 
   MenuItem, Dialog, DialogTitle, DialogContent, 
-  DialogActions, Button, List, ListItem, 
-  ListItemText, TextField, Avatar, IconButton
+  DialogActions, Button, List, ListItem, ListItemIcon,
+  ListItemText, TextField, Avatar, IconButton,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel
 } from '@mui/material';
 import { 
   Group as GroupIcon, 
@@ -13,7 +14,14 @@ import {
   Add as AddIcon,
   PhotoCamera as PhotoCameraIcon,
   Delete as DeleteIcon,
-  Check as CheckIcon
+  Check as CheckIcon,
+  ShowChart as ShowChartIcon,
+  ReceiptLong as ReceiptLongIcon,
+  Inventory2 as Inventory2Icon,
+  PersonAddAlt1 as PersonAddAlt1Icon,
+  FileUpload as FileUploadIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
@@ -27,7 +35,7 @@ import {
   ArcElement
 } from 'chart.js';
 import { useAppContext } from '../context/AppContext';
-
+import { useNavigate } from 'react-router-dom';
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
@@ -40,6 +48,7 @@ ChartJS.register(
 );
 
 function Dashboard() {
+  const navigate = useNavigate();
   const { coaches, athletes, groups, events, schools, setCoaches, setAthletes, setGroups, setEvents, setSchools } = useAppContext();
   const [selectedSchool, setSelectedSchool] = useState(1);
   const [openCoachDialog, setOpenCoachDialog] = useState(false);
@@ -187,10 +196,15 @@ function Dashboard() {
 
   const barChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Events by Day of Week' },
+      legend: { position: 'top', labels: { font: { size: 10 } } },
+      title: { display: true, text: 'Events by Day of Week', font: { size: 12 } },
     },
+    scales: {
+      x: { ticks: { font: { size: 10 } } },
+      y: { ticks: { font: { size: 10 } } }
+    }
   };
 
   // Handle coach dialog open
@@ -269,11 +283,26 @@ function Dashboard() {
     }
   };
 
+  const getSchoolNameById = (schoolId) => {
+    const school = schools.find(s => s.id === schoolId);
+    return school ? school.name : 'N/A';
+  };
+
+  const getCoachNameById = (coachId) => {
+    const coach = coaches.find(c => c.id === coachId);
+    return coach ? coach.name : 'N/A';
+  };
+
+  const upcomingEvents = events
+    .filter(event => new Date(event.date) >= new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 5); // Show next 5 upcoming events
+
   return (
-    <div >
+    <div>
       {/* School Selector - Moved to top */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <FormControl fullWidth>
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <FormControl fullWidth size="small">
           <InputLabel id="school-select-label">Select School</InputLabel>
           <Select
             labelId="school-select-label"
@@ -281,6 +310,7 @@ function Dashboard() {
             value={selectedSchool}
             label="Select School"
             onChange={handleSchoolChange}
+            size="small"
           >
             <MenuItem value="">
               <em>None</em>
@@ -294,151 +324,286 @@ function Dashboard() {
         </FormControl>
       </Paper>
       
-      {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center', alignItems: 'center' , bgcolor: 'white', borderRadius : '10px' , p: 2}}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 2, 
-              display: 'flex', 
-              flexDirection: 'column', 
-              height: 140,
-              bgcolor: 'primary.light',
-              color: 'white'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography component="h2" variant="h6">
-                Coaches
-              </Typography>
-              <PersonIcon fontSize="large" />
-            </Box>
-            <Typography component="p" variant="h3">
-              {coaches.length}
+      {/* Summary Cards - Updated UI */}
+      <Paper sx={{ p: 2, mb: 3, borderRadius: '10px' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box>
+            <Typography  component="h4" fontSize={18} fontWeight="bold">
+              Today's Stats
             </Typography>
-            <Typography variant="body2">
-              Total registered coaches
-            </Typography>
-          </Paper>
-        </Grid>
+          </Box>
+        </Box>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 2, 
-              display: 'flex', 
-              flexDirection: 'column', 
-              height: 140,
-              bgcolor: 'success.light',
-              color: 'white'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography component="h2" variant="h6">
-                Athletes
+        <Grid container spacing={2} sx={{ justifyContent: 'center' }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2,
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: 150, // Adjusted height
+                bgcolor: '#FFF1F0', // Light pink
+                borderRadius: '10px',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Avatar sx={{ bgcolor: '#FF6B6B', color: 'white', mb: 1 }}> {/* Reddish pink icon bg */}
+                <ShowChartIcon fontSize="small"/>
+              </Avatar>
+              <Typography component="p" variant="h5" fontWeight="bold">
+                {coaches.length}
               </Typography>
-              <PeopleIcon fontSize="large" />
-            </Box>
-            <Typography component="p" variant="h3">
-              {athletes.length}
-            </Typography>
-            <Typography variant="body2">
-              Total registered athletes
-            </Typography>
-          </Paper>
-        </Grid>
+              <Typography variant="body2" color="text.secondary">
+                Total Coaches
+              </Typography>
+              <Typography variant="caption" color="#FF6B6B">
+                +2% from yesterday
+              </Typography>
+            </Paper>
+          </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 2, 
-              display: 'flex', 
-              flexDirection: 'column', 
-              height: 140,
-              bgcolor: 'warning.light',
-              color: 'white'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography component="h2" variant="h6">
-                Teams
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2,
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: 150, // Adjusted height
+                bgcolor: '#FFF8E1', // Light yellow
+                borderRadius: '10px',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Avatar sx={{ bgcolor: '#FFD166', color: 'white', mb: 1 }}> {/* Orangey yellow icon bg */}
+                <PeopleIcon fontSize="small"/>
+              </Avatar>
+              <Typography component="p" variant="h5" fontWeight="bold">
+                {athletes.length}
               </Typography>
-              <GroupIcon fontSize="large" />
-            </Box>
-            <Typography component="p" variant="h3">
-              {groups.length}
-            </Typography>
-            <Typography variant="body2">
-              Active training groups
-            </Typography>
-          </Paper>
-        </Grid>
+              <Typography variant="body2" color="text.secondary">
+                Total Athletes
+              </Typography>
+              <Typography variant="caption" color="#FFD166">
+                +5% from yesterday
+              </Typography>
+            </Paper>
+          </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 2, 
-              display: 'flex', 
-              flexDirection: 'column', 
-              height: 140,
-              bgcolor: 'error.light',
-              color: 'white'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography component="h2" variant="h6">
-                Events
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2,
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: 150, // Adjusted height
+                bgcolor: '#E6FFFA', // Light green/cyan
+                borderRadius: '10px',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Avatar sx={{ bgcolor: '#06D6A0', color: 'white', mb: 1 }}> {/* Green icon bg */}
+                <GroupIcon fontSize="small"/>
+              </Avatar>
+              <Typography component="p" variant="h5" fontWeight="bold">
+                {groups.length}
               </Typography>
-              <EventIcon fontSize="large" />
-            </Box>
-            <Typography component="p" variant="h3">
-              {events.length}
-            </Typography>
-            <Typography variant="body2">
-              Scheduled training events
-            </Typography>
-          </Paper>
+              <Typography variant="body2" color="text.secondary">
+                Active Teams
+              </Typography>
+              <Typography variant="caption" color="#06D6A0">
+                +1.2% from yesterday
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2,
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: 150, // Adjusted height
+                bgcolor: '#F3E8FF', // Light purple
+                borderRadius: '10px',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Avatar sx={{ bgcolor: '#8338EC', color: 'white', mb: 1 }}> {/* Purple icon bg */}
+                <EventIcon fontSize="small"/>
+              </Avatar>
+              <Typography component="p" variant="h5" fontWeight="bold">
+                {events.length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Scheduled Events
+              </Typography>
+              <Typography variant="caption" color="#8338EC">
+                +0.5% from yesterday
+              </Typography>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
+      </Paper>
       
       {/* Chart Section */}
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
+      <Grid container spacing={2} sx={{mb: 3, width: '100%', justifyContent: "space-evenly"}} >
+        <Grid item xs={6}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="subtitle2" gutterBottom>
               Athletes by Sport
             </Typography>
-            <Box sx={{ height: 300 }}>
-              <Pie data={pieChartData} />
+            <Box sx={{ height: 220, width: '100%' }}>
+              <Pie data={pieChartData} options={{ 
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                  legend: { 
+                    position: 'right', 
+                    labels: { font: { size: 11 } } 
+                  } 
+                } 
+              }} />
             </Box>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={6}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="subtitle2" gutterBottom>
               Events by Day
             </Typography>
-            <Box sx={{ height: 300 }}>
+            <Box sx={{ height: 220, width: '100%' }}>
               <Bar data={barChartData} options={barChartOptions} />
             </Box>
           </Paper>
         </Grid>
       </Grid>
 
+      {/* Coaches List Section */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>Coaches Overview</Typography>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ bgcolor: '#1C7293', color: 'white' }}>
+              <TableRow >
+                <TableCell sx={{ color: 'white' }}>Name</TableCell>
+                <TableCell sx={{ color: 'white' }}>Email</TableCell>
+                <TableCell sx={{ color: 'white' }}>Specialty</TableCell>
+                <TableCell sx={{ color: 'white' }}>School</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {coaches.slice(0,5) .map((coach) => (
+                <TableRow key={coach.id} hover>
+                  <TableCell>{coach.name}</TableCell>
+                  <TableCell>{coach.email}</TableCell>
+                  <TableCell>{coach.specialty}</TableCell>
+                  <TableCell>{getSchoolNameById(coach.schoolId)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={() => navigate('/coaches')} className='!text-[#1C7293]' size="small" variant="text" startIcon={<VisibilityIcon />}>View All Coaches</Button> {/* TODO: Implement routing/modal */} 
+          </Box>
+      </Paper>
+
+      {/* Athletes List Section */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>Athletes Overview</Typography>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ bgcolor: '#1C7293', color: 'white'  }}>
+              <TableRow>
+                <TableCell sx={{ color: 'white' }}>Name</TableCell>
+                <TableCell sx={{ color: 'white' }}>Email</TableCell>
+                <TableCell sx={{ color: 'white' }}>Sport</TableCell>
+                <TableCell sx={{ color: 'white' }}>School</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {athletes.slice(0,5).map((athlete) => (
+                <TableRow key={athlete.id} hover>
+                  <TableCell>{athlete.name}</TableCell>
+                  <TableCell>{athlete.email}</TableCell>
+                  <TableCell>{athlete.sport}</TableCell>
+                  <TableCell>{getSchoolNameById(athlete.schoolId)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={() => navigate('/athletes')} className='!text-[#1C7293]' size="small" variant="text" startIcon={<VisibilityIcon />}>View All Athletes</Button> {/* TODO: Implement routing/modal */} 
+          </Box>
+      </Paper>
+
+      {/* Teams/Groups List Section */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>Teams/Groups Overview</Typography>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ bgcolor: '#1C7293', color: 'white' }}>
+              <TableRow>
+                <TableCell sx={{ color: 'white' }}>Team Name</TableCell>
+                <TableCell sx={{ color: 'white' }}>Coach</TableCell>
+                <TableCell sx={{ color: 'white' }}>No. of Athletes</TableCell>
+                <TableCell sx={{ color: 'white' }}>Description</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {groups.slice(0,5).map((group) => (
+                <TableRow key={group.id} hover>
+                  <TableCell>{group.name}</TableCell>
+                  <TableCell>{getCoachNameById(group.coachId)}</TableCell>
+                  <TableCell>{group.athletes.length}</TableCell>
+                  <TableCell>{group.description}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={() => navigate('/groups')} className='!text-[#1C7293]' size="small" variant="text" startIcon={<VisibilityIcon />}>View All Teams</Button> {/* TODO: Implement routing/modal */} 
+          </Box>
+      </Paper>
+
+      {/* Upcoming Events Section */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>Upcoming Events</Typography>
+        {upcomingEvents.length > 0 ? (
+          <List dense>
+            {upcomingEvents.map((event) => (
+              <ListItem key={event.id} disablePadding sx={{ '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1, mb: 0.5, p: 0.5 }}>
+                <ListItemIcon sx={{minWidth: 'auto', mr: 1}}>
+                  <EventIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={event.title} 
+                  secondary={`${new Date(event.date).toLocaleDateString()} ${event.startTime} - ${event.endTime} @ ${event.location}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <Typography variant="body2" color="text.secondary">No upcoming events.</Typography>
+        )}
+      </Paper>
+
       {/* Coach Dialog */}
-      <Dialog open={openCoachDialog} onClose={handleCloseCoachDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{currentCoach.id ? 'Edit Coach Profile' : 'Add New Coach'}</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={3}>
+      <Dialog open={openCoachDialog} onClose={handleCloseCoachDialog} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ py: 1, fontSize: '1rem' }}>{currentCoach.id ? 'Edit Coach Profile' : 'Add New Coach'}</DialogTitle>
+        <DialogContent sx={{ py: 1 }}>
+          <Grid container spacing={2}>
             {/* Profile Image Section */}
-            <Grid item xs={12} sm={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 3 }}>
+            <Grid item xs={12} sm={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 2 }}>
               <Avatar 
                 src={currentCoach.profileImage || '/placeholder-avatar.png'} 
-                sx={{ width: 150, height: 150, mb: 2 }}
+                sx={{ width: 100, height: 100, mb: 1 }}
               />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Button
@@ -446,8 +611,9 @@ function Dashboard() {
                   component="label"
                   startIcon={<PhotoCameraIcon />}
                   color={currentCoach.profileImage ? "success" : "primary"}
+                  size="small"
                 >
-                  {currentCoach.profileImage ? "Change Photo" : "Upload Photo"}
+                  {currentCoach.profileImage ? "Change" : "Upload"}
                   <input
                     type="file"
                     hidden
@@ -470,14 +636,15 @@ function Dashboard() {
                   <IconButton 
                     color="error" 
                     onClick={() => setCurrentCoach({...currentCoach, profileImage: ''})}
+                    size="small"
                   >
-                    <DeleteIcon />
+                    <DeleteIcon fontSize="small" />
                   </IconButton>
                 )}
               </Box>
               {currentCoach.profileImage && (
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                  <CheckIcon color="success" fontSize="small" />
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                  <CheckIcon color="success" sx={{ fontSize: '0.8rem' }} />
                   <Typography variant="caption" color="success.main" sx={{ ml: 0.5 }}>
                     Photo selected
                   </Typography>
@@ -487,7 +654,7 @@ function Dashboard() {
 
             {/* Basic Info Section */}
             <Grid item xs={12} sm={8}>
-              <Grid container spacing={2}>
+              <Grid container spacing={1}>
                 <Grid item xs={12}>
                   <TextField
                     required
@@ -496,6 +663,7 @@ function Dashboard() {
                     name="name"
                     value={currentCoach.name}
                     onChange={handleCoachChange}
+                    size="small"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -507,6 +675,7 @@ function Dashboard() {
                     type="email"
                     value={currentCoach.email}
                     onChange={handleCoachChange}
+                    size="small"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -516,6 +685,7 @@ function Dashboard() {
                     name="phone"
                     value={currentCoach.phone}
                     onChange={handleCoachChange}
+                    size="small"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -525,10 +695,11 @@ function Dashboard() {
                     name="specialty"
                     value={currentCoach.specialty}
                     onChange={handleCoachChange}
+                    size="small"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth size="small">
                     <InputLabel>School</InputLabel>
                     <Select
                       name="schoolId"
@@ -554,16 +725,17 @@ function Dashboard() {
                 label="Biography"
                 name="bio"
                 multiline
-                rows={4}
+                rows={3}
                 value={currentCoach.bio}
                 onChange={handleCoachChange}
+                size="small"
               />
             </Grid>
 
             {/* Certifications Section */}
             <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>Certifications</Typography>
-              <Box sx={{ display: 'flex', mb: 1 }}>
+              <Typography variant="body2" sx={{ mb: 0.5 }}>Certifications</Typography>
+              <Box sx={{ display: 'flex', mb: 0.5 }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -574,15 +746,16 @@ function Dashboard() {
                 <Button 
                   variant="contained" 
                   onClick={handleAddCertification}
-                  sx={{ ml: 1 }}
+                  sx={{ ml: 0.5 }}
+                  size="small"
                 >
                   Add
                 </Button>
               </Box>
-              <List dense>
+              <List dense sx={{ maxHeight: '120px', overflow: 'auto' }}>
                 {currentCoach.certifications.map((cert, index) => (
-                  <ListItem key={index}>
-                    <ListItemText primary={cert} />
+                  <ListItem key={index} dense>
+                    <ListItemText primary={cert} primaryTypographyProps={{ variant: 'caption' }} />
                     <IconButton
                       edge="end"
                       onClick={() => {
@@ -591,6 +764,7 @@ function Dashboard() {
                           certifications: currentCoach.certifications.filter((_, i) => i !== index)
                         });
                       }}
+                      size="small"
                     >
                       <DeleteIcon color="error" fontSize="small" />
                     </IconButton>
@@ -601,8 +775,8 @@ function Dashboard() {
 
             {/* Achievements Section */}
             <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>Achievements</Typography>
-              <Box sx={{ display: 'flex', mb: 1 }}>
+              <Typography variant="body2" sx={{ mb: 0.5 }}>Achievements</Typography>
+              <Box sx={{ display: 'flex', mb: 0.5 }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -613,15 +787,16 @@ function Dashboard() {
                 <Button 
                   variant="contained" 
                   onClick={handleAddAchievement}
-                  sx={{ ml: 1 }}
+                  sx={{ ml: 0.5 }}
+                  size="small"
                 >
                   Add
                 </Button>
               </Box>
-              <List dense>
+              <List dense sx={{ maxHeight: '120px', overflow: 'auto' }}>
                 {currentCoach.achievements.map((achievement, index) => (
-                  <ListItem key={index}>
-                    <ListItemText primary={achievement} />
+                  <ListItem key={index} dense>
+                    <ListItemText primary={achievement} primaryTypographyProps={{ variant: 'caption' }} />
                     <IconButton
                       edge="end"
                       onClick={() => {
@@ -630,6 +805,7 @@ function Dashboard() {
                           achievements: currentCoach.achievements.filter((_, i) => i !== index)
                         });
                       }}
+                      size="small"
                     >
                       <DeleteIcon color="error" fontSize="small" />
                     </IconButton>
@@ -639,9 +815,9 @@ function Dashboard() {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseCoachDialog}>Cancel</Button>
-          <Button onClick={handleCoachSubmit} variant="contained" color="primary">
+        <DialogActions sx={{ py: 1 }}>
+          <Button onClick={handleCloseCoachDialog} size="small">Cancel</Button>
+          <Button onClick={handleCoachSubmit} variant="contained" color="primary" size="small">
             {currentCoach.id ? 'Update' : 'Add'} Coach
           </Button>
         </DialogActions>
