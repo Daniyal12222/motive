@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://daniyal12222.github.io/motive",
+  "homepage": "https://github.com/Daniyal12222/motive",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
