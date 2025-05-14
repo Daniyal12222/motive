@@ -1,274 +1,325 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Avatar, Stack, IconButton, Button,
-  Chip, Divider, Card, CardContent
+  Box,
+  Container,
+  Grid,
+  Typography,
+  Avatar,
+  Button,
+  Chip,
+  Divider,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tabs,
+  Tab,
+  Paper,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SportsTennisIcon from '@mui/icons-material/SportsTennis';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import SchoolIcon from '@mui/icons-material/School';
-import WorkIcon from '@mui/icons-material/Work';
-import EventIcon from '@mui/icons-material/Event';
-import GroupsIcon from '@mui/icons-material/Groups';
+import {
+  ArrowBack as ArrowBackIcon,
+  Person as PersonIcon,
+  Event as EventIcon,
+  Group as GroupIcon,
+  School as SchoolIcon,
+  Sports as SportsIcon,
+  ExpandMore as ExpandMoreIcon,
+  AccessTime as TimeIcon,
+  LocationOn as LocationIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+} from '@mui/icons-material';
+import { useAppContext } from '../context/AppContext';
 
-const groupData = [
+//  teamsDetail dammy data
+const teams = [
   {
     id: 1,
-    name: 'Basketball Juniors',
-    coach: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '555-123-4567',
-      university: 'Central University',
-      title: 'Basketball Coach',
-      image: 'https://picsum.photos/80/80?1',
-    },
-    teams: 1,
-    athletes: [
-      { id: 'A1', name: 'Michael Jordan' },
-      { id: 'A2', name: 'Kobe Bryant' }
-    ],
-    events: 2
+    name: 'Team 1',
+    sport: 'Football',
+    coachId: 1,
+    schoolId: 1,
+    athletes: [1, 2, 3],
+    events: [1, 2, 3], 
+
   },
-  {
-    id: 2,
-    name: 'Soccer Stars',
-    coach: {
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '555-987-6543',
-      university: 'West College',
-      title: 'Soccer Coach',
-      image: 'https://picsum.photos/80/80?2',
-    },
-    teams: 2,
-    athletes: [
-      { id: 'B1', name: 'Lionel Messi' },
-      { id: 'B2', name: 'Cristiano Ronaldo' }
-    ],
-    events: 3
-  }
 ];
 
-export default function GroupPage() {
-  const [selectedGroup, setSelectedGroup] = useState(null);
+export default function TeamDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { groups, coaches, athletes, events, schools } = useAppContext();
+  const [group, setGroup] = useState(null);
+  const [tabValue, setTabValue] = useState(0);
 
-  const handleGoBack = () => {
-    window.history.back();
+  useEffect(() => {
+    const groupId = parseInt(id);
+    const foundGroup = groups.find(g => g.id === groupId);
+    setGroup(foundGroup || teams[0]);
+  }, [id, groups]);
+
+  const getCoach = (coachId) => coaches.find(c => c.id === coachId);
+  const getSchool = (schoolId) => schools.find(s => s.id === schoolId);
+  const getGroupAthletes = () => {
+    if (!group || !group.athletes) return [];
+    return group.athletes
+      .map(aid => athletes.find(a => a.id === aid))
+      .filter(Boolean);
   };
+  const getGroupEvents = () => events.filter(e => e.groupId === group?.id);
+
+  if (!group) {
+    return (
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Typography variant="h5">Team not found</Typography>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mt: 2 }}>
+          Back
+        </Button>
+      </Container>
+    );
+  }
+
+  const coach = getCoach(group.coachId);
+  const school = getSchool(group.schoolId);
+  const groupAthletes = getGroupAthletes();
+  const groupEvents = getGroupEvents();
 
   return (
-    <Box p={2} sx={{ maxWidth: 900, margin: '0 auto' }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={handleGoBack}
-        size="small"
-        sx={{ 
-          mb: 2,
-          borderRadius: 2,
-          color: '#1C7293'
-        }}
-      >
-        Back
-      </Button>
-      
-      {!selectedGroup ? (
-        <>
-          <Typography 
-            variant="h6" 
-            className='p-2 rounded-lg !bg-gradient-to-r !from-[#1C7293] !to-[#065A82] text-white shadow-md mb-3 flex items-center'
-          >
-            <GroupsIcon sx={{ mr: 1, fontSize: 18 }} /> Teams List
-          </Typography>
-          <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-            <Table size="small">
-              <TableHead sx={{ bgcolor: '#f5f5f5' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Team Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Coach</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Athletes</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Events</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {groupData.map((group) => (
-                  <TableRow
-                    key={group.id}
-                    hover
-                    sx={{ 
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      '&:hover': { 
-                        bgcolor: '#f0f7ff',
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                      }
-                    }}
-                    onClick={() => setSelectedGroup(group)}
-                  >
-                    <TableCell sx={{ fontWeight: 'medium', py: 1 }}>{group.name}</TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Avatar src={group.coach.image} sx={{ width: 24, height: 24, marginRight: 1 }} />
-                        <Typography sx={{ fontSize: '0.75rem' }}>{group.coach.name}</Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Chip 
-                        icon={<PersonIcon sx={{ fontSize: 16 }} />} 
-                        label={group.athletes.length} 
-                        size="small" 
-                        color="primary" 
-                        variant="outlined" 
-                      />
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Chip 
-                        icon={<EventIcon sx={{ fontSize: 16 }} />} 
-                        label={group.events} 
-                        size="small" 
-                        color="secondary" 
-                        variant="outlined" 
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
-      ) : (
-        <>
-          <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-            <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'start', sm: 'center' }} gap={1}>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>{`Coach ${selectedGroup.coach.name}`}</Typography>
-                <Typography variant="subtitle1" color="primary" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <WorkIcon sx={{ mr: 1, fontSize: 16 }} />
-                  {selectedGroup.coach.title}
-                </Typography>
+    <Container maxWidth="lg" sx={{ mt: 3, mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+        <Button
+          className="!text-[#1C7293] !text-base"
+          startIcon={<ArrowBackIcon sx={{ fontSize: 18 }} />}
+          onClick={() => navigate(-1)}
+          size="small"
+        >
+          Back
+        </Button>
+      </Box>
 
-                <Stack spacing={1} mt={1}>
-                  <Box display="flex" alignItems="center">
+      {/* Team Profile Card */}
+      <Card elevation={1} sx={{ mb: 2, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)' }}>
+        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <Grid container>
+            <Grid item xs={12} md={8} sx={{ width: '100%' }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: { xs: 1, md: 0 }, justifyContent: 'space-between', width: '100%' }}>
+                <Box>
+                  <Typography variant="h5" sx={{ mb: 0.5, fontSize: '1.2rem', fontWeight: 600 }}>{group.name}</Typography>
+                  <Typography variant="subtitle1" className='!text-[#1C7293]' sx={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
+                    <SportsIcon sx={{ width: 18, height: 18, mr: 0.75 }} />
+                    {group.sport || 'Sport'} Team
+                  </Typography>
+                </Box>
+                <Box sx={{ ml: 'auto' }}>
+                  <Avatar sx={{ width: 64, height: 64, border: '2px solid rgba(28, 114, 147, 0.2)' }}>
+                    <GroupIcon />
+                  </Avatar>
+                </Box>
+              </Box>
+              <Grid container spacing={1} sx={{ mb: 1.5, mt: 1 }} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.75 }}>
                     <SchoolIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
-                    <Typography variant="body2">{selectedGroup.coach.university}</Typography>
+                    <Typography variant="body2">{school ? school.name : 'No School'}</Typography>
                   </Box>
-                </Stack>
-              </Box>
-              <Avatar
-                src={selectedGroup.coach.image}
-                alt={selectedGroup.coach.name}
-                sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  border: '3px solid #f0f7ff',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-                }}
-              />
-            </Box>
-            
-            <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <PersonIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">Coach: {coach ? coach.name : 'No Coach'}</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.75 }}>
+                    <GroupIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">{groupAthletes.length} Athletes</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <EventIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
+                    <Typography variant="body2">{groupEvents.length} Events</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
-            <Stack 
-              direction={{ xs: 'column', sm: 'row' }} 
-              spacing={1} 
-              mt={2}
-              sx={{ justifyContent: { xs: 'center', sm: 'flex-start' } }}
+      {/* Tabs for Athletes and Events */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1 }}>
+        <Tabs
+          value={tabValue}
+          onChange={(_, v) => setTabValue(v)}
+          aria-label="team tabs"
+          sx={{
+            minHeight: 36,
+            '& .MuiTab-root': {
+              minHeight: 36,
+              fontSize: '0.85rem',
+              textTransform: 'none',
+              py: 0.5,
+              px: 2,
+            },
+          }}
+        >
+          <Tab label="Athletes" id="team-tab-0" />
+          <Tab label="Events" id="team-tab-1" />
+        </Tabs>
+      </Box>
+
+      {/* Tab Panels */}
+      {tabValue === 0 && (
+        <Paper sx={{ p: 2, borderRadius: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ fontSize: '0.95rem', fontWeight: 500, display: 'flex', alignItems: 'center' }}>
+              <PersonIcon sx={{ mr: 1, fontSize: 18 }} /> Athletes
+            </Typography>
+            <Button
+              variant="contained"
+              className="!bg-[#1C7293] !text-white"
+              startIcon={<PersonIcon sx={{ fontSize: 16 }} />}
+              onClick={() => navigate(`/add-athlete?groupId=${group.id}`)}
+              size="small"
+              sx={{ fontSize: '0.75rem', py: 0.5, textTransform: 'none' }}
             >
-              <Button 
-                variant="contained"
-                size="small" 
-                startIcon={<SportsTennisIcon sx={{ fontSize: 16 }} />}
-                sx={{ borderRadius: 2 }}
-              >
-                {selectedGroup.teams} Teams
-              </Button>
-              <Button 
-                variant="contained"
-                size="small" 
-                color="error" 
-                startIcon={<PersonIcon sx={{ fontSize: 16 }} />}
-                sx={{ borderRadius: 2 }}
-              >
-                {selectedGroup.athletes.length} Athletes
-              </Button>
-              <Button 
-                variant="contained"
-                size="small" 
-                color="secondary"
-                startIcon={<EventIcon sx={{ fontSize: 16 }} />}
-                sx={{ borderRadius: 2 }}
-              >
-                {selectedGroup.events} Events
-              </Button>
-            </Stack>
-
-            {/* Athletes Section */}
-            <Box mt={3}>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
-                  borderLeft: '3px solid #1C7293', 
-                  pl: 1, 
-                  py: 0.5,
-                  mb: 2,
-                  fontWeight: 'bold'
-                }}
-              >
-                Team Athletes
+              <Typography component="p" sx={{ display: { xs: 'none', md: 'block', fontSize: '0.7rem' } }} className="!text-white">
+                Add Athlete
               </Typography>
-              <Box 
-                sx={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
-                  gap: 2 
-                }}
-              >
-                {selectedGroup.athletes.map((athlete) => (
-                  <Card 
-                    key={athlete.id} 
-                    elevation={1}
-                    sx={{ 
-                      borderRadius: 2,
-                      transition: 'all 0.2s',
-                      '&:hover': { 
-                        transform: 'translateY(-3px)',
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                      }
-                    }}
-                  >
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1, px: 2, '&:last-child': { pb: 1 } }}>
-                      <Avatar 
-                        sx={{ 
-                          bgcolor: '#1C7293', 
-                          width: 32, 
-                          height: 32,
-                          fontWeight: 'bold',
-                          fontSize: '0.8rem'
-                        }}
-                      >
-                        {athlete.name.charAt(0)}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="subtitle2" fontWeight="bold">{athlete.name}</Typography>
-                        <Chip
-                          label={`ID: ${athlete.id}`}
-                          size="small"
-                          sx={{ mt: 0.5, height: 20, '& .MuiChip-label': { fontSize: '0.65rem', px: 1 } }}
-                          variant="outlined"
-                        />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
+            </Button>
+          </Box>
+          {groupAthletes.length > 0 ? (
+            <TableContainer component={Paper} variant="outlined" sx={{ mb: 3, borderRadius: '8px', overflow: 'x-auto' }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                    <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Name</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Email</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Sport</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Position/Events</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {groupAthletes.map(athlete => (
+                    <TableRow
+                      key={athlete.id}
+                      sx={{ '&:hover': { bgcolor: 'rgba(28, 114, 147, 0.02)' }, cursor: 'pointer' }}
+                      onClick={() => navigate(`/athletes/${athlete.id}`)}
+                    >
+                      <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>{athlete.name}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>{athlete.email}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>{athlete.sport}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>{athlete.position || (athlete.events && athlete.events.join(', ')) || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Box sx={{ py: 2, px: 3, textAlign: 'center', bgcolor: 'rgba(0,0,0,0.01)', borderRadius: '8px', border: '1px dashed rgba(0,0,0,0.1)', mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                No athletes in this team
+              </Typography>
             </Box>
-          </Paper>
-        </>
+          )}
+        </Paper>
       )}
-    </Box>
+      {tabValue === 1 && (
+        <Paper sx={{ p: 2, borderRadius: 2, mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+            Events
+          </Typography>
+          {groupEvents.length > 0 ? (
+            <Box>
+              {groupEvents
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .map((event) => (
+                  <Accordion key={event.id} sx={{ mb: 1, backgroundColor: '#f9fafb', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderRadius: '8px !important', '&:before': { display: 'none' }, '&.Mui-expanded': { boxShadow: '0 2px 4px rgba(0,0,0,0.08)', borderLeft: '3px solid #1C7293' } }}>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon sx={{ fontSize: 20 }} />}
+                      sx={{ minHeight: 48, '&.Mui-expanded': { minHeight: 48 }, '& .MuiAccordionSummary-content': { margin: '12px 0' }, '&:hover': { backgroundColor: 'rgba(28, 114, 147, 0.04)' }, borderRadius: '8px' }}
+                    >
+                      <Grid container alignItems="center">
+                        <Grid item xs={6}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{event.title}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem', display: 'block' }}>{event.date}</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <TimeIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary', fontSize: 16 }} />
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>{event.startTime} - {event.endTime}</Typography>
+                            </Box>
+                            {event.attendance && (
+                              <Chip
+                                size="small"
+                                icon={<PersonIcon sx={{ fontSize: 14 }} />}
+                                label={`${event.attendance ? Object.values(event.attendance).filter(Boolean).length : 0}/${groupAthletes.length}`}
+                                color={event.attendance && Object.values(event.attendance).filter(Boolean).length > 0 ? 'success' : 'error'}
+                                variant="outlined"
+                                sx={{ height: 24, '& .MuiChip-label': { px: 1, fontSize: '0.75rem' } }}
+                              />
+                            )}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0, pb: 2 }}>
+                      <Divider sx={{ my: 1 }} />
+                      <Grid container>
+                        <Grid item sx={{ width: '100%', height: 'auto' }}>
+                          <Paper className="!w-full" sx={{ p: 2, borderRadius: '8px', backgroundColor: '#ffffff', border: '1px solid rgba(0,0,0,0.04)', boxShadow: 'none' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <EventIcon sx={{ color: 'primary.main', mr: 1.5, fontSize: 20 }} />
+                              <Typography variant="subtitle1" sx={{ fontWeight: 500, fontSize: '0.95rem' }}>Event Details</Typography>
+                            </Box>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} sm={6}>
+                                <List dense sx={{ p: 0 }}>
+                                  <ListItem sx={{ py: 1, px: 0 }}>
+                                    <ListItemText primary="Event Name" secondary={event.title} primaryTypographyProps={{ variant: 'caption', color: 'text.secondary', fontSize: '0.75rem' }} secondaryTypographyProps={{ variant: 'body2', fontWeight: 500, fontSize: '0.85rem' }} />
+                                  </ListItem>
+                                  <ListItem sx={{ py: 1, px: 0 }}>
+                                    <ListItemText primary="Date" secondary={event.date} primaryTypographyProps={{ variant: 'caption', color: 'text.secondary', fontSize: '0.75rem' }} secondaryTypographyProps={{ variant: 'body2', fontSize: '0.85rem' }} />
+                                  </ListItem>
+                                  <ListItem sx={{ py: 1, px: 0 }}>
+                                    <ListItemText primary="Time" secondary={`${event.startTime} - ${event.endTime}`} primaryTypographyProps={{ variant: 'caption', color: 'text.secondary', fontSize: '0.75rem' }} secondaryTypographyProps={{ variant: 'body2', fontSize: '0.85rem' }} />
+                                  </ListItem>
+                                </List>
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <List dense sx={{ p: 0 }}>
+                                  <ListItem sx={{ py: 1, px: 0 }}>
+                                    <ListItemText primary="Location" secondary={<Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}><LocationIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary', fontSize: 16 }} /><Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{event.location || 'No location specified'}</Typography></Box>} primaryTypographyProps={{ variant: 'caption', color: 'text.secondary', fontSize: '0.75rem' }} />
+                                  </ListItem>
+                                  <ListItem sx={{ py: 1, px: 0 }}>
+                                    <ListItemText primary="Attendance" secondary={event.attendance ? (<Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>{Object.values(event.attendance).filter(Boolean).length > 0 ? (<CheckCircleIcon fontSize="small" sx={{ mr: 0.5, color: 'success.main', fontSize: 16 }} />) : (<CancelIcon fontSize="small" sx={{ mr: 0.5, color: 'error.main', fontSize: 16 }} />)}<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{`${Object.values(event.attendance).filter(Boolean).length}/${groupAthletes.length} athletes present`}</Typography></Box>) : ('Attendance not recorded')} primaryTypographyProps={{ variant: 'caption', color: 'text.secondary', fontSize: '0.75rem' }} secondaryTypographyProps={{ variant: 'body2', fontSize: '0.85rem' }} />
+                                  </ListItem>
+                                </List>
+                              </Grid>
+                            </Grid>
+                          </Paper>
+                        </Grid>
+                      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              No events for this team
+            </Typography>
+          )}
+        </Paper>
+      )}
+    </Container>
   );
 }

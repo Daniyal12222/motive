@@ -223,6 +223,7 @@ function Groups() {
         </Box>
       </Paper>
 
+      {/* Team Table List (restored) */}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
@@ -284,20 +285,20 @@ function Groups() {
           </TableBody>
         </Table>
       </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredGroups.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{ 
-            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
-              fontSize: '0.8rem'
-            }
-          }}
-        />
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredGroups.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        sx={{ 
+          '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+            fontSize: '0.8rem'
+          }
+        }}
+      />
 
       {/* Add/Edit Group Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
