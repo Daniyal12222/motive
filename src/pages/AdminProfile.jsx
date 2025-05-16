@@ -423,7 +423,18 @@ const AdminProfile = () => {
         <Tabs 
           value={activeTab} 
           onChange={handleTabChange} 
-          className="border-b !border-[#1C7293] !text-[#1C7293]"
+          className="border-b"
+          sx={{
+            "& .MuiTab-root": {
+              color: "#1C7293"
+            },
+            "& .Mui-selected": {
+              color: "#1C7293"
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#1C7293"
+            }
+          }}
         >
           <Tab label="Admin Dashboard" />
           <Tab label="System Settings" />

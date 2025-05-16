@@ -211,14 +211,11 @@ function DashboardLayout() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                <MenuItem onClick={handleCloseUserMenu} className="min-w-[180px]">
-                  <Typography className="!text-gray-700 ">Profile</Typography>
+                <MenuItem onClick={handleCloseUserMenu} className="min-w-[180px] hover:!bg-[#1C7293] hover:!text-white">
+                  <Typography className="">Profile</Typography>
                 </MenuItem>
-                <MenuItem onClick={handleLogout} className="min-w-[180px]">
-                  <ListItemIcon className="text-gray-600">
-                    <LogoutIcon fontSize="small" />
-                  </ListItemIcon>
-                  <Typography className="text-gray-700">Logout</Typography>
+                <MenuItem onClick={handleLogout} className="min-w-[180px] hover:!bg-[#1C7293] hover:!text-white">
+                    <Typography className="">Logout</Typography>
                 </MenuItem>
               </Menu>
             </Box>

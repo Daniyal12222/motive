@@ -590,7 +590,7 @@ function CoachDetail() {
                           fontWeight: 500,
                         },
                         "& .Mui-selected": {
-                          color: "#1C7293"
+                          color: "#1C7293 !important"
                         },
                         "& .MuiTabs-indicator": {
                           backgroundColor: "#1C7293"

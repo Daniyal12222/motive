@@ -168,6 +168,12 @@ export default function TeamDetail() {
               textTransform: 'none',
               py: 0.5,
               px: 2,
+              '&.Mui-selected': {
+                color: '#1C7293 !important',
+              },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#1C7293 !important"
+              }
             },
           }}
         >
