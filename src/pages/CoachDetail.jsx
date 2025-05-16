@@ -589,6 +589,12 @@ function CoachDetail() {
                           fontSize: "0.85rem",
                           fontWeight: 500,
                         },
+                        "& .Mui-selected": {
+                          color: "#1C7293"
+                        },
+                        "& .MuiTabs-indicator": {
+                          backgroundColor: "#1C7293"
+                        }
                       }}
                     >
                       <Tab

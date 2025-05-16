@@ -17,7 +17,6 @@ import {
   FilterList as FilterIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
-  Event as EventIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
@@ -172,12 +171,6 @@ function Schools() {
     }
 
     return totalAthletes;
-  };
-
-  // Get events count for a school (placeholder function)
-  const getSchoolEventsCount = (schoolId) => {
-    // Replace with actual events counting logic when available
-    return 0; // Default to 0 until you implement event tracking
   };
 
   // Navigate to school detail page when clicking on a row
@@ -368,13 +361,12 @@ function Schools() {
               <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Coaches</TableCell>
               <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Teams</TableCell>
               <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Athletes</TableCell>
-              <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', fontWeight: 500 }}>Events</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedSchools.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={6} align="center">
                   <Typography variant="body2" sx={{ py: 2, color: 'text.secondary' }}>
                     No schools found. Add your first school!
                   </Typography>
@@ -459,16 +451,6 @@ function Schools() {
                       label={getSchoolAthletesCount(school.id)}
                       size="small"
                       color="success"
-                      variant="outlined"
-                      sx={{ height: '22px', '& .MuiChip-label': { fontSize: '0.75rem', px: 1 } }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ fontSize: '0.815rem', color: 'text.secondary' }}>
-                    <Chip 
-                      icon={<EventIcon sx={{ fontSize: '0.85rem' }} />} 
-                      label={getSchoolEventsCount(school.id)}
-                      size="small"
-                      color="info"
                       variant="outlined"
                       sx={{ height: '22px', '& .MuiChip-label': { fontSize: '0.75rem', px: 1 } }}
                     />

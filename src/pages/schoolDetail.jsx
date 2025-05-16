@@ -337,7 +337,6 @@ const SchoolDetail = () => {
                     <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Name</TableCell>
                     <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Email</TableCell>
                     <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Specialty</TableCell>
-                    <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -346,9 +345,6 @@ const SchoolDetail = () => {
                       <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>{coach.name}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>{coach.email}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>{coach.specialty}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', py: 1 }}>
-                        <Button size="small" variant="outlined" onClick={() => navigate(`/coach/${coach.id}`)} sx={{ borderRadius: 2, textTransform: 'none', fontSize: '0.8rem' }}>View</Button>
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
