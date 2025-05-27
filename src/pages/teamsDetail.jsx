@@ -171,9 +171,9 @@ export default function TeamDetail() {
               '&.Mui-selected': {
                 color: '#1C7293 !important',
               },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "#1C7293 !important"
-              }
+             "& .MuiTabs-indicator": {
+                          backgroundColor: "#1C7293 !important"
+                        }
             },
           }}
         >
@@ -256,14 +256,17 @@ export default function TeamDetail() {
                       <Grid container alignItems="center">
                         <Grid item xs={6}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{event.title}</Typography>
+                          <Box component="div" className='flex items-end gap-2'>
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem', display: 'block' }}>{event.date}</Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <TimeIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary', fontSize: 16 }} />
                               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>{event.startTime} - {event.endTime}</Typography>
                             </Box>
+                            </Box>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5 }}>
+                            
                             {event.attendance && (
                               <Chip
                                 size="small"

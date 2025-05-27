@@ -25,12 +25,15 @@ import {
   Avatar,
   FormHelperText,
   TablePagination,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   FilterList as FilterIcon,
+  Person as PersonIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 import basketballImg from "../assets/basketball.jpg";
@@ -67,6 +70,9 @@ function Coaches() {
     profileImage: null,
     bio: "",
   });
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Sports options for the specialty dropdown
   const sportOptions = [
@@ -339,9 +345,39 @@ function Coaches() {
       />
 
       {/* Add/Edit Coach Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="md" className="" fullWidth>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: 8,
+            bgcolor: "#fafdff",
+            borderLeft: "8px solid #1C7293",
+            p: 0,
+            overflow: "visible",
+          },
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: -3 }}>
+          <Avatar sx={{ bgcolor: "#1C7293", width: 64, height: 64, boxShadow: 3, mb: 1 }}>
+            <PersonIcon sx={{ fontSize: 36, color: "white" }} />
+          </Avatar>
+        </Box>
         <DialogTitle
-          sx={{ textAlign: "center", bgcolor: "#1C7293", color: "white", fontSize: { xs: '0.9rem', sm: '1rem' }, py: { xs: 1.5, sm: 2 } }}
+          sx={{
+            textAlign: "center",
+            bgcolor: "transparent",
+            color: "#1C7293",
+            fontWeight: 700,
+            fontSize: isMobile ? "1.25rem" : "1.5rem",
+            letterSpacing: 1,
+            py: isMobile ? 1.5 : 2,
+            mb: -2,
+          }}
         >
           {editCoach ? "Edit Coach" : "Add New Coach"}
         </DialogTitle>
@@ -352,23 +388,48 @@ function Coaches() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              px: { xs: 2, sm: 4 },
-              py: { xs: 2, sm: 3 },
+              px: isMobile ? 2 : 6,
+              pt: isMobile ? 4 : 6,
+              pb: isMobile ? 2 : 4,
+              width: "100%",
+              maxWidth: 600,
+              mx: "auto",
+              bgcolor: "transparent",
+              borderRadius: 3,
+              boxShadow: "none",
+              gap: 2,
+              maxHeight: isMobile ? "calc(100dvh - 180px)" : "calc(100vh - 220px)",
+              overflowY: "auto",
+              "&::-webkit-scrollbar": {
+                width: "8px",
+                height: "8px",
+              },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: "#f1f1f1",
+                borderRadius: "10px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#1C7293",
+                borderRadius: "10px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: "#14576F",
+              },
             }}
           >
-            <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ maxWidth: "100%" }}>
+            <Grid container spacing={isMobile ? 2 : 3} sx={{ maxWidth: "100%", mt: 18 }}>
               {/* Profile Image Section */}
-              <Grid item xs={12} sx={{ width: "100%", mb: { xs: 1, sm: 2 } }}>
+              <Grid item xs={12} sx={{ width: "100%", mb: { xs: 1, sm: 2 }, mt: 20 }}>
                 <Box
                   sx={{
-                    display: 'flex', 
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: 'center',
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    alignItems: "center",
                     mb: 2,
-                    gap: { xs: 1, sm: 3 }
+                    gap: { xs: 1, sm: 3 },
                   }}
                 >
-                  <Box sx={{ position: 'relative', mb: { xs: 2, sm: 0 } }}>
+                  <Box sx={{ position: "relative", mb: { xs: 2, sm: 0 } }}>
                     {formData.profileImage ? (
                       <Avatar
                         src={URL.createObjectURL(formData.profileImage)}
@@ -388,18 +449,18 @@ function Coaches() {
                     <Button
                       className="!bg-[#daf1f9] border border-white !text-[#1C7293]"
                       component="label"
-                      sx={{ 
-                        position: 'absolute',
+                      sx={{
+                        position: "absolute",
                         bottom: 0,
                         right: 0,
-                        borderRadius: '50%', 
-                        minWidth: 'auto',
-                        padding: '4px',
-                        width: { xs: '22px', sm: '28px' },
-                        height: { xs: '22px', sm: '28px' },
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center'
+                        borderRadius: "50%",
+                        minWidth: "auto",
+                        padding: "4px",
+                        width: { xs: "22px", sm: "28px" },
+                        height: { xs: "22px", sm: "28px" },
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
                       }}
                     >
                       <AddIcon fontSize="small" />
@@ -411,17 +472,16 @@ function Coaches() {
                       />
                     </Button>
                   </Box>
-                  
                   <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 500, mb: 1, fontSize: '0.875rem' }}>
+                    <Typography variant="body1" sx={{ fontWeight: 500, mb: 1, fontSize: "0.875rem" }}>
                       Coach Profile Picture
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.75rem" }}>
                       Upload a professional photo of the coach
                     </Typography>
                     {formData.profileImage && (
-                      <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', mr: 2 }}>
+                      <Box sx={{ mt: 1, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.75rem", mr: 2 }}>
                           {formData.profileImage.name}
                         </Typography>
                         <Button
@@ -429,7 +489,7 @@ function Coaches() {
                           size="small"
                           onClick={() => setFormData({ ...formData, profileImage: null })}
                           color="error"
-                          sx={{ fontSize: '0.75rem' }}
+                          sx={{ fontSize: "0.75rem" }}
                         >
                           Remove
                         </Button>
@@ -438,12 +498,11 @@ function Coaches() {
                   </Box>
                 </Box>
               </Grid>
-
               {/* Basic Information */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   autoFocus
-                  margin="dense"
+                  margin="normal"
                   name="firstName"
                   label="First Name"
                   type="text"
@@ -455,11 +514,13 @@ function Coaches() {
                   helperText="Enter the coach's first name"
                   placeholder="John"
                   size="small"
+                  InputProps={{ sx: { borderRadius: 2, bgcolor: "white", fontWeight: 400, fontSize: "1rem", boxShadow: 1 } }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: "#1C7293" } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  margin="dense"
+                  margin="normal"
                   name="lastName"
                   label="Last Name"
                   type="text"
@@ -471,11 +532,13 @@ function Coaches() {
                   helperText="Enter the coach's last name"
                   placeholder="Doe"
                   size="small"
+                  InputProps={{ sx: { borderRadius: 2, bgcolor: "white", fontWeight: 400, fontSize: "1rem", boxShadow: 1 } }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: "#1C7293" } }}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  margin="dense"
+                  margin="normal"
                   name="email"
                   label="Email"
                   type="email"
@@ -487,11 +550,13 @@ function Coaches() {
                   helperText="Enter a valid email address"
                   placeholder="coach@example.com"
                   size="small"
+                  InputProps={{ sx: { borderRadius: 2, bgcolor: "white", fontWeight: 400, fontSize: "1rem", boxShadow: 1 } }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: "#1C7293" } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  margin="dense"
+                  margin="normal"
                   name="phone"
                   label="Phone"
                   type="text"
@@ -501,21 +566,15 @@ function Coaches() {
                   onChange={handleChange}
                   helperText="Format: (123) 456-7890"
                   placeholder="(123) 456-7890"
-                  InputProps={{
-                    sx: { borderRadius: 1.5, fontSize: '0.875rem' },
-                  }}
-                  InputLabelProps={{
-                    sx: { fontSize: '0.875rem' }
-                  }}
-                  FormHelperTextProps={{
-                    sx: { fontSize: '0.75rem' }
-                  }}
+                  InputProps={{ sx: { borderRadius: 2, bgcolor: "white", fontWeight: 400, fontSize: "1rem", boxShadow: 1 } }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: "#1C7293" } }}
+                  FormHelperTextProps={{ sx: { fontSize: "0.75rem" } }}
                   size="small"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <FormControl fullWidth margin="dense" size="small">
-                  <InputLabel id="specialty-label" sx={{ fontSize: '0.875rem' }}>Specialty</InputLabel>
+                <FormControl fullWidth margin="normal" size="small">
+                  <InputLabel id="specialty-label" sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#1C7293" }}>Specialty</InputLabel>
                   <Select
                     labelId="specialty-label"
                     id="specialty-select"
@@ -523,34 +582,28 @@ function Coaches() {
                     value={formData.specialty}
                     onChange={handleChange}
                     label="Specialty"
-                    sx={{ borderRadius: 1.5, fontSize: '0.875rem' }}
+                    sx={{ borderRadius: 2, bgcolor: "white", fontSize: "1rem", boxShadow: 1 }}
                   >
-                    <MenuItem value="" sx={{ fontSize: '0.875rem' }}>
+                    <MenuItem value="" sx={{ fontSize: "0.875rem" }}>
                       <em>Select a sport</em>
                     </MenuItem>
                     {sportOptions.map((sport) => (
-                      <MenuItem key={sport.name} value={sport.name} sx={{ fontSize: '0.875rem' }}>
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
-                        >
-                          <img
-                            src={sport.icon}
-                            alt={sport.name}
-                            style={{ width: 20, height: 20 }}
-                          />
+                      <MenuItem key={sport.name} value={sport.name} sx={{ fontSize: "0.875rem" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                          <img src={sport.icon} alt={sport.name} style={{ width: 20, height: 20 }} />
                           {sport.name}
                         </Box>
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText sx={{ fontSize: '0.75rem' }}>
+                  <FormHelperText sx={{ fontSize: "0.75rem" }}>
                     Select the coach's specialty sport
                   </FormHelperText>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <FormControl fullWidth margin="dense" size="small">
-                  <InputLabel id="school-label" sx={{ fontSize: '0.875rem' }}>School</InputLabel>
+                <FormControl fullWidth margin="normal" size="small">
+                  <InputLabel id="school-label" sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#1C7293" }}>School</InputLabel>
                   <Select
                     labelId="school-label"
                     id="school-select"
@@ -558,25 +611,25 @@ function Coaches() {
                     value={formData.schoolId}
                     onChange={handleChange}
                     label="School"
-                    sx={{ borderRadius: 1.5, fontSize: '0.875rem' }}
+                    sx={{ borderRadius: 2, bgcolor: "white", fontSize: "1rem", boxShadow: 1 }}
                   >
-                    <MenuItem value="" sx={{ fontSize: '0.875rem' }}>
+                    <MenuItem value="" sx={{ fontSize: "0.875rem" }}>
                       <em>None</em>
                     </MenuItem>
                     {schools.map((school) => (
-                      <MenuItem key={school.id} value={school.id} sx={{ fontSize: '0.875rem' }}>
+                      <MenuItem key={school.id} value={school.id} sx={{ fontSize: "0.875rem" }}>
                         {school.name}
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText sx={{ fontSize: '0.75rem' }}>
+                  <FormHelperText sx={{ fontSize: "0.75rem" }}>
                     Assign the coach to a school (optional)
                   </FormHelperText>
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  margin="dense"
+                  margin="normal"
                   name="bio"
                   label="Bio"
                   multiline
@@ -587,65 +640,64 @@ function Coaches() {
                   onChange={handleChange}
                   helperText="Enter coach's background and experience"
                   placeholder="Coach's professional background, achievements, and coaching philosophy..."
-                  InputProps={{
-                    sx: { borderRadius: 1.5, fontSize: '0.875rem' },
-                  }}
-                  InputLabelProps={{
-                    sx: { fontSize: '0.875rem' }
-                  }}
-                  FormHelperTextProps={{
-                    sx: { fontSize: '0.75rem' }
-                  }}
+                  InputProps={{ sx: { borderRadius: 2, bgcolor: "white", fontWeight: 400, fontSize: "1rem", boxShadow: 1 } }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: "#1C7293" } }}
+                  FormHelperTextProps={{ sx: { fontSize: "0.75rem" } }}
                   size="small"
                 />
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions sx={{ 
-            justifyContent: { xs: "center", sm: "flex-end" }, 
-            pb: { xs: 2, sm: 3 }, 
-            px: { xs: 2, sm: 3 },
-            gap: { xs: 1, sm: 2 },
-            flexDirection: { xs: 'column', sm: 'row' },
-            width: '100%'
-          }}>
-            <Button
-              onClick={handleClose}
-              variant="outlined"
+          <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", mt: 0 }}>
+            <DialogActions
               sx={{
-                px: 3,
-                borderRadius: 6,
-                color: "text.secondary",
-                borderColor: "text.secondary",
-                "&:hover": {
-                  borderColor: "text.primary",
-                  bgcolor: "rgba(0,0,0,0.03)",
-                },
-                fontSize: '0.875rem',
-                width: { xs: '100%', sm: 'auto' }
+                bgcolor: "transparent",
+                display: "flex",
+                justifyContent: "center",
+                py: isMobile ? 1.5 : 2,
+                flexDirection: isMobile ? "column" : "row",
+                gap: isMobile ? 1 : 2,
+                px: isMobile ? 2 : 3,
+                borderTop: "1px solid #e3e8ee",
+                width: "100%",
+                position: "relative",
+                bottom: 0,
+                zIndex: 2,
               }}
-              size="small"
             >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{
-                px: 4,
-                borderRadius: 6,
-                bgcolor: "#1C7293",
-                "&:hover": {
-                  bgcolor: "#14576F",
-                },
-                fontSize: '0.875rem',
-                width: { xs: '100%', sm: 'auto' }
-              }}
-              size="small"
-            >
-              {editCoach ? "Update" : "Add"}
-            </Button>
-          </DialogActions>
+              <Button
+                onClick={handleClose}
+                fullWidth={isMobile}
+                variant={isMobile ? "outlined" : "text"}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  color: "#1C7293",
+                  borderColor: "#1C7293",
+                  bgcolor: isMobile ? "white" : "transparent",
+                  "&:hover": { bgcolor: "#e3f2fd", borderColor: "#14576F", color: "#14576F" },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth={isMobile}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  bgcolor: "#1C7293",
+                  color: "white",
+                  boxShadow: 2,
+                  "&:hover": { bgcolor: "#14576F" },
+                }}
+              >
+                {editCoach ? "Update" : "Add"}
+              </Button>
+            </DialogActions>
+          </Box>
         </form>
       </Dialog>
     </div>

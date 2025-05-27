@@ -274,7 +274,7 @@ const SchoolDetail = () => {
           mb: { xs: 1, sm: 2 },
           borderBottom: 1,
           borderColor: 'divider',
-          '& .Mui-selected': { color: '#1C7293' },
+          '& .Mui-selected': { color: '#1C7293 !important' },
           '& .MuiTabs-indicator': { backgroundColor: '#1C7293' },
           '& .MuiTab-root': { 
             minWidth: { xs: 'auto', sm: 90 },
@@ -451,21 +451,21 @@ const SchoolDetail = () => {
                         </Grid>
                         <Grid item xs={12} sm={3} md={3}>
                           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', px: { xs: 0, sm: 0.75 }, py: { xs: 0.75, sm: 0 }, borderLeft: { xs: 'none', sm: '1px solid rgba(0,0,0,0.02)' }, borderRight: { xs: 'none', sm: '1px solid rgba(0,0,0,0.02)' } }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                            <Typography variant="caption"  className='!font-semibold'  sx={{ fontSize: '0.8rem' }}>
                               Coach
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <Avatar sx={{ width: 18, height: 18, mr: 0.75, bgcolor: bgColor, fontSize: '0.65rem' }}>
                                 {coach ? coach.name.charAt(0) : 'C'}
                               </Avatar>
-                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.7rem' }}>
                                 {coach ? coach.name : 'Not Assigned'}
                               </Typography>
                             </Box>
                           </Box>
                         </Grid>
                         <Grid item xs={12} sm={4} md={5}>
-                          <Button size="small" variant="outlined" onClick={() => navigate(`/teams/${group.id}`)} sx={{ borderRadius: 2, textTransform: 'none', fontSize: '0.8rem' }}>View Team</Button>
+                          <Button size="small" variant="outlined" className='!text-[#1C7293] !border-[#1C7293]' onClick={() => navigate(`/teams/${group.id}`)} sx={{ borderRadius: 2, textTransform: 'none', fontSize: '0.8rem' }}>View Team</Button>
                         </Grid>
                       </Grid>
                     </CardContent>

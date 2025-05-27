@@ -433,9 +433,7 @@ function CoachDetail() {
                       {coach.phone || "No phone number"}
                     </Typography>
                   </Box>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 0.75 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
                     <SchoolIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
                     <Typography variant="body2">
                       {getSchoolName(coach.schoolId)}
@@ -820,6 +818,7 @@ function CoachDetail() {
                                       >
                                         {event.title}
                                       </Typography>
+                                      <Box sx={{display: "flex", alignItems: "center", gap: 1 , mt: 0.2}}>
                                       <Typography
                                         variant="caption"
                                         sx={{
@@ -827,20 +826,10 @@ function CoachDetail() {
                                           fontSize: "0.75rem",
                                           display: "block",
                                         }}
-                                      >
+                                        >
                                         {event.date}
                                       </Typography>
-                                    </Grid>
-                                    <Grid item xs={6}>
                                       <Box
-                                        sx={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "flex-end",
-                                          gap: 1.5,
-                                        }}
-                                      >
-                                        <Box
                                           sx={{
                                             display: "flex",
                                             alignItems: "center",
@@ -862,6 +851,17 @@ function CoachDetail() {
                                             {event.startTime} - {event.endTime}
                                           </Typography>
                                         </Box>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Box
+                                        sx={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "flex-end",
+                                          gap: 1.5,
+                                        }}
+                                      >
                                         {event.attendance && (
                                           <Chip
                                             size="small"
@@ -940,7 +940,7 @@ function CoachDetail() {
 
                                         <Grid container spacing={2}>
                                           <Grid item xs={12} sm={6}>
-                                            <List dense sx={{ p: 0 }}>
+                                            <List dense sx={{ p: 0, mt: 0 }}>
                                               <ListItem sx={{ py: 1, px: 0 }}>
                                                 <ListItemText
                                                   primary="Event Name"
@@ -957,7 +957,7 @@ function CoachDetail() {
                                                   }}
                                                 />
                                               </ListItem>
-                                              <ListItem sx={{ py: 1, px: 0 }}>
+                                              <ListItem sx={{  px: 0 }}>
                                                 <ListItemText
                                                   primary="Date"
                                                   secondary={event.date}
@@ -972,7 +972,7 @@ function CoachDetail() {
                                                   }}
                                                 />
                                               </ListItem>
-                                              <ListItem sx={{ py: 1, px: 0 }}>
+                                              <ListItem sx={{ py: 1, px: 0 , mt: 0.3}}>
                                                 <ListItemText
                                                   primary="Time"
                                                   secondary={`${event.startTime} - ${event.endTime}`}
@@ -990,8 +990,8 @@ function CoachDetail() {
                                             </List>
                                           </Grid>
                                           <Grid item xs={12} sm={6}>
-                                            <List dense sx={{ p: 0 }}>
-                                              <ListItem sx={{ py: 1, px: 0 }}>
+                                            <List dense sx={{ p: 0 ,}}>
+                                              <ListItem sx={{ px: 0 }}>
                                                 <ListItemText
                                                   primary="Location"
                                                   secondary={

@@ -507,12 +507,31 @@ function Schools() {
         maxWidth="sm" 
         fullWidth
         fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: 8,
+            bgcolor: '#fafdff',
+            borderLeft: '8px solid #1C7293',
+            p: 0,
+            overflow: 'visible',
+          }
+        }}
       >
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: -3 }}>
+          <Avatar sx={{ bgcolor: '#1C7293', width: 64, height: 64, boxShadow: 3, mb: 1 }}>
+            <SchoolIcon sx={{ fontSize: 36, color: 'white' }} />
+          </Avatar>
+        </Box>
         <DialogTitle sx={{ 
           textAlign: 'center', 
-          bgcolor: '#1C7293', 
-          color: 'white',
-          py: isMobile ? 1.5 : 2
+          bgcolor: 'transparent', 
+          color: '#1C7293',
+          fontWeight: 700,
+          fontSize: isMobile ? '1.25rem' : '1.5rem',
+          letterSpacing: 1,
+          py: isMobile ? 1.5 : 2,
+          mb: -2
         }}>
           {editSchool ? 'Edit School' : 'Add New School'}
         </DialogTitle>
@@ -522,8 +541,18 @@ function Schools() {
             flexDirection: 'column', 
             alignItems: 'center',
             justifyContent: 'center',
-            px: isMobile ? 2 : 4,
-            py: isMobile ? 2 : 3,
+            px: isMobile ? 2 : 6,
+            pt: isMobile ? 4 : 6,
+            pb: isMobile ? 2 : 4,
+            width: '100%',
+            maxWidth: 600,
+            mx: 'auto',
+            bgcolor: 'transparent',
+            borderRadius: 3,
+            boxShadow: 'none',
+            gap: 2,
+            maxHeight: isMobile ? 'calc(100dvh - 180px)' : 'calc(100vh - 220px)',
+            overflowY: 'auto',
             "&::-webkit-scrollbar": {
               width: "8px",
               height: "8px",
@@ -540,7 +569,8 @@ function Schools() {
               backgroundColor: "#14576F",
             },
           }}>
-            <Grid container spacing={isMobile ? 1 : 2} sx={{ maxWidth: '100%' }}>
+            <Grid container spacing={isMobile ? 2 : 3} sx={{ maxWidth: '100%',
+            mt: 18, }}>
               <Grid item xs={12}>
                 <TextField
                   autoFocus
@@ -555,8 +585,9 @@ function Schools() {
                   helperText="Enter the school's name"
                   placeholder="Westview High School"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { borderRadius: 2, bgcolor: 'white', fontWeight: 400, fontSize: '1rem', boxShadow: 1 }
                   }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -571,8 +602,9 @@ function Schools() {
                   helperText="Street address"
                   placeholder="123 Main St"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
                   }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -587,8 +619,9 @@ function Schools() {
                   helperText="City name"
                   placeholder="San Diego"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
                   }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
                 />
               </Grid>
               <Grid item xs={6} sm={3}>
@@ -603,8 +636,9 @@ function Schools() {
                   helperText="State abbreviation"
                   placeholder="CA"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
                   }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
                 />
               </Grid>
               <Grid item xs={6} sm={3}>
@@ -619,8 +653,9 @@ function Schools() {
                   helperText="5-digit zip code"
                   placeholder="92101"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
                   }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -635,8 +670,9 @@ function Schools() {
                   helperText="Phone number"
                   placeholder="(123) 456-7890"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
                   }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -651,37 +687,61 @@ function Schools() {
                   helperText="Email address"
                   placeholder="example@school.com"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
                   }}
+                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
                 />
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions sx={{ 
-            bgcolor: '#f7f7f7', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            py: isMobile ? 1.5 : 2,
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? 1 : 2,
-            px: isMobile ? 2 : 3
-          }}>
-            <Button 
-              onClick={handleClose}
-              fullWidth={isMobile}
-              variant={isMobile ? "outlined" : "text"}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary"
-              fullWidth={isMobile}
-            >
-              {editSchool ? 'Save Changes' : 'Add School'}
-            </Button>
-          </DialogActions>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 0 }}>
+            <DialogActions sx={{ 
+              bgcolor: 'transparent', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              py: isMobile ? 1.5 : 2,
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? 1 : 2,
+              px: isMobile ? 2 : 3,
+              borderTop: '1px solid #e3e8ee',
+              width: '100%',
+              position: 'relative',
+              bottom: 0,
+              zIndex: 2
+            }}>
+              <Button 
+                onClick={handleClose}
+                fullWidth={isMobile}
+                variant={isMobile ? "outlined" : "text"}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  color: '#1C7293',
+                  borderColor: '#1C7293',
+                  bgcolor: isMobile ? 'white' : 'transparent',
+                  '&:hover': { bgcolor: '#e3f2fd', borderColor: '#14576F', color: '#14576F' }
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary"
+                fullWidth={isMobile}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  bgcolor: '#1C7293',
+                  color: 'white',
+                  boxShadow: 2,
+                  '&:hover': { bgcolor: '#14576F' }
+                }}
+              >
+                {editSchool ? 'Save Changes' : 'Add School'}
+              </Button>
+            </DialogActions>
+          </Box>
         </form>
       </Dialog>
     </div>

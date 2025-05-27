@@ -425,9 +425,6 @@ const AdminProfile = () => {
           onChange={handleTabChange} 
           className="border-b"
           sx={{
-            "& .MuiTab-root": {
-              color: "#1C7293"
-            },
             "& .Mui-selected": {
               color: "#1C7293"
             },

@@ -312,9 +312,6 @@ function Dashboard() {
             onChange={handleSchoolChange}
             size="small"
           >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
             {schools.map((school) => (
               <MenuItem key={school.id} value={school.id}>
                 {school.name} - {school.location}

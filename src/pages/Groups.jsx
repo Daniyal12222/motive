@@ -6,7 +6,7 @@ import {
   DialogTitle, DialogContent, DialogActions, TextField, Grid,
   Select, MenuItem, FormControl, InputLabel, Chip, ListItem,
   ListItemText, List, Checkbox, FormControlLabel, Avatar, FormHelperText,
-  TablePagination
+  TablePagination, useTheme, useMediaQuery
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -20,6 +20,8 @@ import { useAppContext } from '../context/AppContext';
 
 function Groups() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { groups, setGroups, coaches, athletes, schools } = useAppContext();
   const [open, setOpen] = useState(false);
   const [editGroup, setEditGroup] = useState(null);
@@ -301,51 +303,142 @@ function Groups() {
       />
 
       {/* Add/Edit Group Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ textAlign: 'center', bgcolor: '#1C7293', color: 'white' }}>
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        maxWidth="sm" 
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: 8,
+            bgcolor: '#fafdff',
+            borderLeft: '8px solid #1C7293',
+            p: 0,
+            overflow: 'visible',
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: -3, position: 'relative', zIndex: 2 }}>
+          <Avatar sx={{ bgcolor: '#1C7293', width: 64, height: 64, boxShadow: 3, mb: 1 }}>
+            <GroupIcon sx={{ fontSize: 36, color: 'white' }} />
+          </Avatar>
+        </Box>
+        <DialogTitle sx={{ 
+          textAlign: 'center', 
+          bgcolor: 'transparent', 
+          color: '#1C7293',
+          fontWeight: 700,
+          fontSize: isMobile ? '1.25rem' : '1.5rem',
+          letterSpacing: 1,
+          py: isMobile ? 1.5 : 2,
+          mb: 0
+        }}>
           {editGroup ? 'Edit Team' : 'Add New Team'}
         </DialogTitle>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContent sx={{ 
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center',
-            justifyContent: 'center',
-            px: 4,
-            pt: 3 
+            justifyContent: 'flex-start',
+            px: isMobile ? 2 : 6,
+            pt: 2,
+            pb: isMobile ? 2 : 4,
+            width: '100%',
+            maxWidth: 600,
+            mx: 'auto',
+            bgcolor: 'transparent',
+            borderRadius: 3,
+            boxShadow: 'none',
+            gap: 2,
+            flex: 1,
+            maxHeight: { xs: 'calc(100dvh - 180px)', sm: 'calc(100vh - 220px)' },
+            overflowY: 'auto',
+            "&::-webkit-scrollbar": {
+              width: "8px",
+              height: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: "#f1f1f1",
+              borderRadius: "10px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#1C7293",
+              borderRadius: "10px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: "#14576F",
+            },
           }}>
-            <Grid container spacing={2} sx={{ maxWidth: '95%' }}>
-              <Grid item xs={12}>
+            <Grid container spacing={isMobile ? 2 : 3} sx={{ maxWidth: '100%', position: 'relative', zIndex: 1 }}>
+              <Box sx={{ width: '100%' }} className='flex  gap-2'>
                 <TextField
                   autoFocus
-                  margin="dense"
                   name="name"
                   label="Team Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
                   value={formData.name}
                   onChange={handleChange}
+                  fullWidth
                   required
-                  helperText="Enter the team name"
+                  variant="outlined"
+                  helperText="Enter the team's name"
                   placeholder="Varsity Basketball"
                   InputProps={{
-                    sx: { borderRadius: 1.5 }
+                    sx: { 
+                      borderRadius: 2, 
+                      bgcolor: 'white', 
+                      fontWeight: 400, 
+                      fontSize: '1rem', 
+                      boxShadow: 1,
+                      position: 'relative',
+                      zIndex: 1
+                    }
+                  }}
+                  InputLabelProps={{ 
+                    shrink: true, 
+                    sx: { 
+                      ml: 0, 
+                      fontWeight: 600, 
+                      color: '#1C7293',
+                      position: 'relative',
+                      zIndex: 1
+                    } 
                   }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth margin="dense">
-                  <InputLabel id="coach-select-label">Coach</InputLabel>
+                <FormControl fullWidth>
+                  <InputLabel 
+                    id="coach-select-label"
+                    shrink
+                    sx={{ 
+                      ml: 0, 
+                      fontWeight: 600, 
+                      color: '#1C7293',
+                      position: 'relative',
+                      zIndex: 1
+                    }}
+                  >
+                    Coach
+                  </InputLabel>
                   <Select
                     labelId="coach-select-label"
                     id="coach-select"
                     name="coachId"
                     value={formData.coachId}
-                    label="Coach"
                     onChange={handleChange}
                     required
-                    sx={{ borderRadius: 1.5 }}
+                    sx={{ 
+                      borderRadius: 2,
+                      bgcolor: 'white',
+                      boxShadow: 1,
+                      width: '100%',
+                      '& .MuiSelect-select': {
+                        fontSize: '1rem',
+                      },
+                      position: 'relative',
+                      zIndex: 1
+                    }}
                   >
                     {coaches.map((coach) => (
                       <MenuItem key={coach.id} value={coach.id}>
@@ -357,22 +450,40 @@ function Groups() {
                   </Select>
                   <FormHelperText>Select a coach for this team</FormHelperText>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth margin="dense">
-                  <InputLabel id="school-select-label">School</InputLabel>
+              </Box>
+              <Box sx={{ width: '100%' }}>
+                <FormControl fullWidth>
+                  <InputLabel 
+                    id="school-select-label"
+                    shrink
+                    sx={{ 
+                      ml: 0, 
+                      fontWeight: 600, 
+                      color: '#1C7293',
+                      position: 'relative',
+                      zIndex: 1
+                    }}
+                  >
+                    School
+                  </InputLabel>
                   <Select
                     labelId="school-select-label"
                     id="school-select"
                     name="schoolId"
                     value={formData.schoolId}
-                    label="School"
                     onChange={handleChange}
-                    sx={{ borderRadius: 1.5 }}
+                    sx={{ 
+                      borderRadius: 2,
+                      bgcolor: 'white',
+                      width: '100%',
+                      boxShadow: 1,
+                      '& .MuiSelect-select': {
+                        fontSize: '1rem',
+                      },
+                      position: 'relative',
+                      zIndex: 1
+                    }}
                   >
-                    <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
                     {schools.map((school) => (
                       <MenuItem key={school.id} value={school.id}>
                         {school.name}
@@ -381,9 +492,13 @@ function Groups() {
                   </Select>
                   <FormHelperText>Assign the team to a school (optional)</FormHelperText>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12}  sx={{width: "100%"}}>
-                <Typography variant="subtitle1" gutterBottom sx={{ mt: 1 }}>
+              </Box>
+              <Box sx={{ width: '100%' }}>
+                <Typography variant="subtitle1" sx={{ 
+                  fontWeight: 600,
+                  color: '#1C7293',
+                  mb: 1
+                }}>
                   Select Athletes
                 </Typography>
                 <Paper 
@@ -391,19 +506,35 @@ function Groups() {
                   sx={{ 
                     maxHeight: 250, 
                     overflow: 'auto', 
-                    p: 1,
+                    p: 2,
                     border: '2px dashed #ccc', 
                     borderRadius: 2,
-                    bgcolor: 'rgba(0,0,0,0.02)',
+                    bgcolor: 'white',
+                    boxShadow: 1,
                     '&:hover': {
                       borderColor: '#1C7293',
-                      bgcolor: 'rgba(28,114,147,0.05)'
+                      bgcolor: 'rgba(28,114,147,0.02)'
+                    },
+                    "&::-webkit-scrollbar": {
+                      width: "8px",
+                      height: "8px",
+                    },
+                    "&::-webkit-scrollbar-track": {
+                      backgroundColor: "#f1f1f1",
+                      borderRadius: "10px",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      backgroundColor: "#1C7293",
+                      borderRadius: "10px",
+                    },
+                    "&::-webkit-scrollbar-thumb:hover": {
+                      backgroundColor: "#14576F",
                     },
                   }}
                 >
                   <List dense>
                     {athletes.map((athlete) => (
-                      <ListItem key={athlete.id} sx={{ py: 0 }}>
+                      <ListItem key={athlete.id} sx={{ py: 0.5 }}>
                         <FormControlLabel
                           control={
                             <Checkbox
@@ -414,14 +545,17 @@ function Groups() {
                                 '&.Mui-checked': {
                                   color: '#1C7293',
                                 },
-
                               }}
                             />
                           }
                           label={
                             <ListItemText 
-                              primary={athlete.name} 
-                              secondary={`${athlete.sport}`} 
+                              primary={
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                  {athlete.name}
+                                </Typography>
+                              }
+                              secondary={athlete.sport}
                             />
                           }
                         />
@@ -430,21 +564,37 @@ function Groups() {
                   </List>
                 </Paper>
                 <FormHelperText>Select the athletes that belong to this team</FormHelperText>
-              </Grid>
+              </Box>
             </Grid>
+            
           </DialogContent>
-          <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 0 }}>
+            <DialogActions sx={{ 
+              bgcolor: 'transparent', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? 1 : 2,
+              px: isMobile ? 2 : 3,
+              borderTop: '1px solid #e3e8ee',
+              width: '100%',
+              position: 'relative',
+              bottom: 0,
+              zIndex: 2
+            }}>
             <Button 
-              onClick={handleClose} 
+              onClick={handleClose}
               variant="outlined"
-              sx={{ 
-                px: 3, 
-                borderRadius: 6,
-                color: 'text.secondary',
-                borderColor: 'text.secondary',
-                '&:hover': {
-                  borderColor: 'text.primary',
-                  bgcolor: 'rgba(0,0,0,0.03)'
+              sx={{
+                minWidth: 100,
+                borderRadius: 2,
+                fontWeight: 600,
+                color: '#1C7293',
+                borderColor: '#1C7293',
+                '&:hover': { 
+                  bgcolor: '#e3f2fd',
+                  borderColor: '#14576F',
+                  color: '#14576F'
                 }
               }}
             >
@@ -452,19 +602,20 @@ function Groups() {
             </Button>
             <Button 
               type="submit" 
-              variant="contained" 
-              sx={{ 
-                px: 4, 
-                borderRadius: 6,
+              variant="contained"
+              sx={{
+                minWidth: 100,
+                borderRadius: 2,
+                fontWeight: 700,
                 bgcolor: '#1C7293',
-                '&:hover': {
-                  bgcolor: '#14576F'
-                }
+                color: 'white',
+                '&:hover': { bgcolor: '#14576F' }
               }}
             >
-              {editGroup ? 'Update' : 'Add'}
+              {editGroup ? 'Save Changes' : 'Add Team'}
             </Button>
           </DialogActions>
+          </Box>
         </form>
       </Dialog>
     </div>
