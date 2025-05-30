@@ -291,7 +291,8 @@ function Groups() {
       </Paper>
 
       {/* Team Table List (restored) */}
-      <TableContainer component={Paper}>
+      <Box sx={{ width: '100%' , px: 5, py: 2 }}>
+      <TableContainer component={Paper} sx={{ borderRadius: '10px', border: '1px solid #e0e0e0' }}>
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
@@ -352,6 +353,7 @@ function Groups() {
           </TableBody>
         </Table>
       </TableContainer>
+      </Box>
       {/* <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"

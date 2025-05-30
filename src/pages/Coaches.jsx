@@ -284,10 +284,11 @@ function Coaches() {
       </Paper>
 
       {/* Coaches Table */}
-      <TableContainer component={Paper} sx={{ overflow: 'auto' }}>
+      <Box sx={{ width: '100%' , px: 5, py: 2 }}>
+      <TableContainer component={Paper} sx={{ borderRadius: '10px', border: '1px solid #e0e0e0' }}>
         <Table sx={{ minWidth: { xs: 500, sm: 650 } }} aria-label="coaches table">
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ bgcolor: '#f0f0f0' }}>
               <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', py: { xs: 1.5, sm: 2 } }}>Profile</TableCell>
               <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', py: { xs: 1.5, sm: 2 } }}>Coach</TableCell>
               <TableCell sx={{ fontSize: '0.875rem', color: 'text.secondary', py: { xs: 1.5, sm: 2 } }}>Sport</TableCell>
@@ -327,6 +328,7 @@ function Coaches() {
           </TableBody>
         </Table>
       </TableContainer>
+      </Box>
 
       <Box sx={{ 
         display: 'flex', 

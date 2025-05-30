@@ -257,10 +257,11 @@ function Athletes() {
       </Paper>
 
       {/* Athletes Table */}
-      <TableContainer component={Paper}>
+      <Box sx={{ width: '100%' , px: 5, py: 2 }}> 
+      <TableContainer component={Paper} sx={{ borderRadius: '10px', border: '1px solid #e0e0e0' }}>
         <Table sx={{ minWidth: 650 }} aria-label="athletes table">
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ bgcolor: '#f0f0f0' }}>
               <TableCell>Profile</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Sport</TableCell>
@@ -305,7 +306,8 @@ function Athletes() {
           </TableBody>
         </Table>
       </TableContainer>
-      
+      </Box>
+
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'center', 

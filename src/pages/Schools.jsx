@@ -405,13 +405,13 @@ function Schools() {
       </Paper>
 
       {/* Table View (for all screen sizes) */}
+      <Box sx={{ width: '100%' , px: 5, py: 2 }}> 
       <TableContainer 
         component={Paper}
         sx={{
           borderRadius: '8px',
           boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
           mb: 2,
-          overflow: 'auto'
         }}
       >
         <Table 
@@ -526,6 +526,7 @@ function Schools() {
           </TableBody>
         </Table>
       </TableContainer>
+      </Box>
 
       {/* Pagination */}
       <Box sx={{ 
