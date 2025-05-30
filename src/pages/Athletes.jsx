@@ -305,21 +305,59 @@ function Athletes() {
           </TableBody>
         </Table>
       </TableContainer>
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="td"
-                count={filteredAthletes.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
-                sx={{
-                  '& .MuiToolbar-root': {
-                    justifyContent: 'flex-start',
-                  }
-                }}
-              />
+      
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        mt: 2,
+        mb: 2,
+        gap: 2
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ mr: 1, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
+            Rows per page:
+          </Typography>
+          <Select
+            value={rowsPerPage}
+            onChange={handleChangeRowsPerPage}
+            size="small"
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+          >
+            {[5, 10, 25].map((option) => (
+              <MenuItem key={option} value={option} sx={{ fontSize: '0.875rem' }}>
+                {option}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <IconButton 
+            onClick={(e) => handleChangePage(e, page - 1)} 
+            disabled={page === 0}
+            size="small"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+          </IconButton>
+          
+          <Typography sx={{ mx: 2, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
+            {`${page * rowsPerPage + 1}-${Math.min((page + 1) * rowsPerPage, filteredAthletes.length)} of ${filteredAthletes.length}`}
+          </Typography>
+          
+          <IconButton 
+            onClick={(e) => handleChangePage(e, page + 1)} 
+            disabled={page >= Math.ceil(filteredAthletes.length / rowsPerPage) - 1}
+            size="small"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+            </svg>
+          </IconButton>
+        </Box>
+      </Box>
 
       {/* Add/Edit Athlete Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -434,7 +472,6 @@ function Athletes() {
                   value={formData.firstName}
                   onChange={handleChange}
                   required
-                  helperText="Enter the athlete's first name"
                   placeholder="John"
                   InputProps={{
                     sx: { borderRadius: 1.5 }
@@ -452,7 +489,6 @@ function Athletes() {
                   value={formData.lastName}
                   onChange={handleChange}
                   required
-                  helperText="Enter the athlete's last name"
                   placeholder="Doe"
                   InputProps={{
                     sx: { borderRadius: 1.5 }
@@ -470,7 +506,6 @@ function Athletes() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  helperText="Enter a valid email address"
                   placeholder="athlete@example.com"
                   InputProps={{
                     sx: { borderRadius: 1.5 }
@@ -487,7 +522,6 @@ function Athletes() {
                   variant="outlined"
                   value={formData.phone}
                   onChange={handleChange}
-                  helperText="Format: (123) 456-7890"
                   placeholder="(123) 456-7890"
                   InputProps={{
                     sx: { borderRadius: 1.5 }
@@ -523,7 +557,6 @@ function Athletes() {
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText>Select the athlete's primary sport</FormHelperText>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6} sx={{width: '48%'}}>
@@ -547,7 +580,6 @@ function Athletes() {
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText>Assign a coach to this athlete (optional)</FormHelperText>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6} sx={{width: '100%'}}>
@@ -571,7 +603,6 @@ function Athletes() {
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText>Assign the athlete to a school (optional)</FormHelperText>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sx={{width: '100%'}}>
@@ -585,7 +616,6 @@ function Athletes() {
                   variant="outlined"
                   value={formData.bio}
                   onChange={handleChange}
-                  helperText="Enter athlete's biography or background information"
                   placeholder="Brief description of athlete's background, achievements, and goals..."
                   InputProps={{
                     sx: { borderRadius: 1.5 }
@@ -623,7 +653,7 @@ function Athletes() {
                 }
               }}
             >
-              {editAthlete ? 'Update' : 'Add'}
+              {editAthlete ? 'Update' : 'Add'}  
             </Button>
           </DialogActions>
         </form>

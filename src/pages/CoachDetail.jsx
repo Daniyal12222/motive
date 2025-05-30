@@ -40,7 +40,7 @@ import {
   IconButton,
   Checkbox,
 } from "@mui/material";
-
+import FormComponent from "../components/FormComponent";
 import {
   ArrowBack as ArrowBackIcon,
   Email as EmailIcon,
@@ -110,6 +110,8 @@ function CoachDetail() {
   const [expandedEvents, setExpandedEvents] = useState({});
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addTeamDialogOpen, setAddTeamDialogOpen] = useState(false);
+  const [addAthleteDialogOpen, setAddAthleteDialogOpen] = useState(false);
+  const [addEventDialogOpen, setAddEventDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
     email: "",
@@ -124,6 +126,28 @@ function CoachDetail() {
     description: "",
     sport: "",
     athletes: [],
+  });
+  const [newAthleteData, setNewAthleteData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    age: "",
+    grade: "",
+    position: "",
+    jerseyNumber: "",
+    teamId: "",
+    notes: "",
+    profileImage: null,
+  });
+  const [newEventData, setNewEventData] = useState({
+    title: "",
+    type: "practice",
+    date: "",
+    time: "",
+    duration: 60,
+    location: "",
+    teamId: "",
+    description: "",
   });
 
   // Array of common sports for the dropdown with icons
@@ -257,7 +281,6 @@ function CoachDetail() {
 
   const handleCloseAddTeamDialog = () => {
     setAddTeamDialogOpen(false);
-    // Reset form data
     setNewTeamData({
       name: "",
       description: "",
@@ -274,16 +297,59 @@ function CoachDetail() {
   };
 
   const handleSubmitNewTeam = () => {
-    // Here you would add logic to create a new team
-    // For example, dispatch an action to add the team to the store
-    // or make an API call to create the team
-    console.log("Creating new team:", {
-      ...newTeamData,
-      coachId: coach.id,
-    });
-
-    // Close the dialog after submission
+    // Implementation for adding a new team
+    console.log("Submitting new team:", newTeamData);
     handleCloseAddTeamDialog();
+  };
+
+  const handleOpenAddAthleteDialog = () => {
+    setAddAthleteDialogOpen(true);
+  };
+
+  const handleCloseAddAthleteDialog = () => {
+    setAddAthleteDialogOpen(false);
+    setNewAthleteData({
+      name: "",
+      email: "",
+      phone: "",
+      age: "",
+      grade: "",
+      position: "",
+      jerseyNumber: "",
+      teamId: "",
+      notes: "",
+      profileImage: null,
+    });
+  };
+
+  const handleOpenAddEventDialog = () => {
+    setAddEventDialogOpen(true);
+  };
+
+  const handleCloseAddEventDialog = () => {
+    setAddEventDialogOpen(false);
+    setNewEventData({
+      title: "",
+      type: "practice",
+      date: "",
+      time: "",
+      duration: 60,
+      location: "",
+      teamId: "",
+      description: "",
+    });
+  };
+
+  const handleSubmitNewAthlete = (athleteData) => {
+    // Implementation for adding a new athlete
+    console.log("Submitting new athlete:", athleteData);
+    handleCloseAddAthleteDialog();
+  };
+
+  const handleSubmitNewEvent = (eventData) => {
+    // Implementation for adding a new event
+    console.log("Submitting new event:", eventData);
+    handleCloseAddEventDialog();
   };
 
   if (!coach) {
@@ -636,9 +702,7 @@ function CoachDetail() {
                           variant="contained"
                           className="!bg-[#1C7293] !text-white"
                           startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-                          onClick={() =>
-                            navigate(`/add-athlete?groupId=${group.id}`)
-                          }
+                          onClick={handleOpenAddAthleteDialog}
                           size="small"
                           sx={{
                             fontSize: "0.75rem",
@@ -648,10 +712,8 @@ function CoachDetail() {
                         >
                           <Typography
                             component="p"
-                            sx={{ display: { xs: "none", md: "block"  , fontSize: "0.7rem" }  }}
+                            sx={{ display: { xs: "none", md: "block", fontSize: "0.7rem" } }}
                             className="!text-white"
-                            
-
                           >
                             Add Athlete
                           </Typography>
@@ -766,6 +828,26 @@ function CoachDetail() {
                         >
                           <EventIcon sx={{ mr: 1, fontSize: 18 }} /> Events
                         </Typography>
+                        <Button
+                          variant="contained"
+                          className="!bg-[#1C7293] !text-white"
+                          startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                          onClick={handleOpenAddEventDialog}
+                          size="small"
+                          sx={{
+                            fontSize: "0.75rem",
+                            py: 0.5,
+                            textTransform: "none",
+                          }}
+                        >
+                          <Typography
+                            component="p"
+                            sx={{ display: { xs: "none", md: "block", fontSize: "0.7rem" } }}
+                            className="!text-white"
+                          >
+                            Add Event
+                          </Typography>
+                        </Button>
                       </Box>
 
                       {/* Events List */}
@@ -1182,530 +1264,243 @@ function CoachDetail() {
       </Card>
 
       {/* Edit Coach Dialog */}
-      <Dialog
+      <FormComponent
+        title="Edit Coach Profile"
+        isDialog={true}
         open={editDialogOpen}
-        onClose={handleCloseEditDialog}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{
-          sx: {
-            borderRadius: "8px",
-          },
+        handleClose={handleCloseEditDialog}
+        onSubmit={handleSubmitEdit}
+        submitButtonText="Save Changes"
+        showAvatar={true}
+        initialValues={{
+          ...editFormData,
+          profileImage: editFormData.avatar
         }}
-      >
-        <DialogTitle
-          sx={{
-            textAlign: "center",
-            bgcolor: "#1C7293",
-            color: "white",
-            py: 1.5,
-            fontSize: "1.1rem",
-          }}
-        >
-          Edit Coach Profile
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            px: { xs: 2, sm: 3 },
-            py: 2,
-          }}
-        >
-          <Grid container spacing={2} sx={{ maxWidth: "100%" }}>
-            <Grid item xs={12} sx={{ width: "100%" }}>
-              <Box
-                sx={{
-                  textAlign: "center",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  mb: 2,
-                }}
-              >
-                <Box sx={{ position: "relative", mb: 1 }}>
-                  <Avatar
-                    src={
-                      editFormData.avatar
-                        ? URL.createObjectURL(editFormData.avatar)
-                        : getProfileImage(editFormData.specialty)
-                    }
-                    alt={editFormData.name}
-                    sx={{ width: 80, height: 80, boxShadow: 2 }}
-                  />
-                  <IconButton
-                    component="label"
-                    size="small"
-                    sx={{
-                      position: "absolute",
-                      bottom: -5,
-                      right: -5,
-                      bgcolor: "rgba(255,255,255,0.9)",
-                      border: "1px solid #1C7293",
-                      color: "#1C7293",
-                      "&:hover": {
-                        bgcolor: "#1C7293",
-                        color: "white",
-                      },
-                    }}
-                  >
-                    <EditIcon fontSize="small" />
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                    />
-                  </IconButton>
-                </Box>
-                {editFormData.avatar && (
-                  <Typography variant="caption" color="textSecondary">
-                    {editFormData.avatar.name}
-                  </Typography>
-                )}
-              </Box>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Name"
-                name="name"
-                value={editFormData.name}
-                onChange={handleFormChange}
-                required
-                size="small"
-                sx={{ mb: 2 }}
-                InputProps={{ sx: { borderRadius: 1.5, fontSize: "0.825rem" } }}
-                InputLabelProps={{ sx: { fontSize: "0.875rem" } }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                name="email"
-                type="email"
-                value={editFormData.email}
-                onChange={handleFormChange}
-                required
-                size="small"
-                sx={{ mb: 2 }}
-                InputProps={{ sx: { borderRadius: 1.5, fontSize: "0.825rem" } }}
-                InputLabelProps={{ sx: { fontSize: "0.875rem" } }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Phone"
-                name="phone"
-                value={editFormData.phone}
-                onChange={handleFormChange}
-                size="small"
-                sx={{ mb: 2 }}
-                InputProps={{ sx: { borderRadius: 1.5, fontSize: "0.825rem" } }}
-                InputLabelProps={{ sx: { fontSize: "0.875rem" } }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Specialty"
-                name="specialty"
-                value={editFormData.specialty}
-                onChange={handleFormChange}
-                required
-                size="small"
-                sx={{ mb: 2 }}
-                InputProps={{ sx: { borderRadius: 1.5, fontSize: "0.825rem" } }}
-                InputLabelProps={{ sx: { fontSize: "0.875rem" } }}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                <InputLabel sx={{ fontSize: "0.875rem" }}>School</InputLabel>
-                <Select
-                  name="schoolId"
-                  value={editFormData.schoolId}
-                  onChange={handleFormChange}
-                  label="School"
-                  sx={{ borderRadius: 1.5, fontSize: "0.825rem" }}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {schools.map((school) => (
-                    <MenuItem key={school.id} value={school.id}>
-                      {school.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Bio"
-                name="bio"
-                value={editFormData.bio}
-                onChange={handleFormChange}
-                multiline
-                rows={3}
-                size="small"
-                placeholder="Enter a brief biography or relevant experience..."
-                helperText="Add information to help athletes and parents learn more about this coach."
-                InputProps={{ sx: { borderRadius: 1.5, fontSize: "0.825rem" } }}
-                InputLabelProps={{ sx: { fontSize: "0.875rem" } }}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            pb: 2,
-            pt: 1,
-            gap: 2,
-            borderTop: "1px solid rgba(0,0,0,0.08)",
-          }}
-        >
-          <Typography
-            variant="caption"
-            color="textSecondary"
-            sx={{ mr: "auto", fontSize: "0.7rem", ml: 1 }}
-          >
-            * Required fields
-          </Typography>
-          <Button
-            onClick={handleCloseEditDialog}
-            variant="outlined"
-            size="small"
-            sx={{
-              px: 2,
-              borderRadius: "6px",
-              color: "text.secondary",
-              borderColor: "text.secondary",
-              textTransform: "none",
-              fontSize: "0.8rem",
-              "&:hover": {
-                borderColor: "text.primary",
-                bgcolor: "rgba(0,0,0,0.03)",
-              },
-            }}
-            startIcon={<CloseIcon sx={{ fontSize: 16 }} />}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmitEdit}
-            variant="contained"
-            size="small"
-            sx={{
-              px: 2,
-              borderRadius: "6px",
-              textTransform: "none",
-              fontSize: "0.8rem",
-              background: "linear-gradient(to right, #1C7293, #065a82)",
-              "&:hover": {
-                background: "linear-gradient(to right, #065a82, #054c6a)",
-              },
-            }}
-            startIcon={<SaveIcon sx={{ fontSize: 16 }} />}
-          >
-            Save Changes
-          </Button>
-        </DialogActions>
-      </Dialog>
+        fields={[
+          {
+            name: "name",
+            label: "Full Name",
+            required: true,
+          },
+          {
+            name: "email",
+            label: "Email Address",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "phone",
+            label: "Phone Number",
+            type: "tel",
+          },
+          {
+            name: "specialty",
+            label: "Specialty",
+            type: "select",
+            options: sportOptions.map(sport => ({
+              value: sport.name,
+              label: sport.name,
+              icon: sport.icon
+            })),
+          },
+          {
+            name: "schoolId",
+            label: "School",
+            type: "select",
+            options: schools.map(school => ({
+              value: school.id,
+              label: school.name
+            })),
+          },
+          {
+            name: "bio",
+            label: "Biography",
+            type: "textarea",
+            width: 12,
+          },
+        ]}
+      />
 
       {/* Add Team Dialog */}
-      <Dialog
+      <FormComponent
+        title="Add New Team"
+        isDialog={true}
         open={addTeamDialogOpen}
-        onClose={handleCloseAddTeamDialog}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{
-          sx: {
-            borderRadius: "8px",
+        handleClose={handleCloseAddTeamDialog}
+        onSubmit={handleSubmitNewTeam}
+        submitButtonText="Create Team"
+        initialValues={newTeamData}
+        fields={[
+          {
+            name: "name",
+            label: "Team Name",
+            required: true,
           },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            textAlign: "center",
-            bgcolor: "#1C7293",
-            color: "white",
-            py: 1.5,
-            fontSize: "1.1rem",
-          }}
-        >
-          Add New Team
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            px: { xs: 2, sm: 3 },
-            py: 2.5,
-          }}
-        >
-          <Grid container spacing={2.5}>
-            {/* First row: Team Name and Sport fields side by side */}
-            <Grid item xs={12} sx={{ display: "flex", gap: 2, width: "100%", paddingTop: 1 }}>
-              <Box sx={{ width: "50%" }}>
-                <TextField
-                  fullWidth
-                  label="Team Name"
-                  name="name"
-                  value={newTeamData.name}
-                  onChange={handleTeamFormChange}
-                  required
-                  size="small"
-                  InputProps={{
-                    sx: { borderRadius: 1.5, fontSize: "0.825rem" },
-                  }}
-                  InputLabelProps={{ sx: { fontSize: "0.875rem" } }}
-                />
-              </Box>
-              <Box sx={{ width: "50%" }}>
-                <FormControl fullWidth size="small" required>
-                  <InputLabel sx={{ fontSize: "0.875rem" }}>Sport</InputLabel>
-                  <Select
-                    name="sport"
-                    value={newTeamData.sport}
-                    onChange={handleTeamFormChange}
-                    label="Sport"
-                    sx={{ borderRadius: 1.5, fontSize: "0.825rem" }}
-                  >
-                    {sportOptions.map((sport) => (
-                      <MenuItem key={sport.name} value={sport.name}>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <ListItemIcon sx={{ minWidth: 32 }}>
-                            {sport.icon ? (
-                              <img
-                                src={sport.icon}
-                                alt={sport.name}
-                                style={{ width: 20, height: 20 }}
-                              />
-                            ) : (
-                              sport.muiIcon
-                            )}
-                          </ListItemIcon>
-                          <Typography variant="body2">{sport.name}</Typography>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                    <MenuItem value="Other">
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <ListItemIcon sx={{ minWidth: 32 }}>
-                          <SportsIcon />
-                        </ListItemIcon>
-                        <Typography variant="body2">Other</Typography>
-                      </Box>
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Grid>
+          {
+            name: "sport",
+            label: "Sport",
+            type: "select",
+            required: true,
+            options: sportOptions.map(sport => ({
+              value: sport.name,
+              label: sport.name,
+              icon: sport.icon
+            })),
+          },
+          {
+            name: "description",
+            label: "Description",
+            type: "textarea",
+            width: 12,
+          },
+        ]}
+      />
 
-            {/* Second row: Athlete selection */}
-            <Grid item xs={12}>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  mb: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  fontSize: "0.9rem",
-                  fontWeight: 500,
-                }}
-              >
-                <PersonIcon sx={{ mr: 1, fontSize: 18 }} />
-                Athletes
-              </Typography>
+      {/* Add Athlete Dialog */}
+      <FormComponent
+        title="Add New Athlete"
+        isDialog={true}
+        open={addAthleteDialogOpen}
+        handleClose={handleCloseAddAthleteDialog}
+        onSubmit={handleSubmitNewAthlete}
+        submitButtonText="Add Athlete"
+        showAvatar={true}
+        initialValues={newAthleteData}
+        fields={[
+          {
+            name: "name",
+            label: "Full Name",
+            required: true,
+          },
+          {
+            name: "email",
+            label: "Email Address",
+            type: "email",
+          },
+          {
+            name: "phone",
+            label: "Phone Number",
+            type: "tel",
+          },
+          {
+            name: "age",
+            label: "Age",
+            type: "number",
+            width: 6,
+          },
+          {
+            name: "grade",
+            label: "Grade",
+            type: "select",
+            width: 6,
+            options: [
+              { value: "9", label: "9th Grade" },
+              { value: "10", label: "10th Grade" },
+              { value: "11", label: "11th Grade" },
+              { value: "12", label: "12th Grade" },
+            ],
+          },
+          {
+            name: "position",
+            label: "Position",
+            width: 6,
+          },
+          {
+            name: "jerseyNumber",
+            label: "Jersey Number",
+            type: "number",
+            width: 6,
+          },
+          {
+            name: "teamId",
+            label: "Team",
+            type: "select",
+            required: true,
+            options: getCoachGroups().map(group => ({
+              value: group.id,
+              label: group.name
+            })),
+          },
+          {
+            name: "notes",
+            label: "Notes",
+            type: "textarea",
+            width: 12,
+          },
+        ]}
+      />
 
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  borderRadius: "8px",
-                  maxHeight: 200,
-                  overflow: "auto",
-                  bgcolor: "rgba(0,0,0,0.01)",
-                }}
-              >
-                {athletes.length > 0 ? (
-                  <Grid container spacing={2}>
-                    {athletes.map((athlete, index) => (
-                      <Grid item xs={12} sm={4} key={athlete.id}>
-                        <Box 
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            p: 1,
-                            borderRadius: "4px",
-                            border: "1px solid rgba(0,0,0,0.08)",
-                            bgcolor: "white",
-                            "&:hover": {
-                              bgcolor: "rgba(28, 114, 147, 0.05)",
-                              cursor: "pointer",
-                            },
-                            transition: "all 0.2s ease",
-                            height: "60px", // Fixed height for all boxes
-                            width: "100%",
-                          }}
-                          onClick={() => {
-                            const isSelected = newTeamData.athletes.includes(athlete.id);
-                            const newAthletes = isSelected
-                              ? newTeamData.athletes.filter(id => id !== athlete.id)
-                              : [...newTeamData.athletes, athlete.id];
-                            setNewTeamData({
-                              ...newTeamData,
-                              athletes: newAthletes,
-                            });
-                          }}
-                        >
-                          <Checkbox
-                            size="small"
-                            checked={newTeamData.athletes.includes(athlete.id)}
-                            sx={{
-                              color: "rgba(0,0,0,0.3)",
-                              "&.Mui-checked": {
-                                color: "#1C7293",
-                              },
-                              padding: '2px',
-                            }}
-                          />
-                          <Box 
-                            sx={{ 
-                              ml: 1,
-                              width: "calc(100% - 30px)", // Ensure consistent width
-                              overflow: "hidden",
-                            }}
-                          >
-                            <Typography
-                              variant="body2"
-                              sx={{ 
-                                fontWeight: 500, 
-                                fontSize: "0.8rem",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis"
-                              }}
-                            >
-                              {athlete.name}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: "text.secondary",
-                                fontSize: "0.7rem",
-                                display: "block",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis"
-                              }}
-                            >
-                              {athlete.sport}{" "}
-                              {athlete.position ? `- ${athlete.position}` : ""}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                ) : (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ textAlign: "center" }}
-                  >
-                    No athletes available to add
-                  </Typography>
-                )}
-              </Paper>
-            </Grid>
-
-            {/* Team Info */}
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  mt: 1,
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <SchoolIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
-                  <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
-                    School: {getSchoolName(coach?.schoolId)}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <PersonIcon color="action" sx={{ mr: 1, fontSize: 16 }} />
-                  <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
-                    Coach: {coach?.name}
-                  </Typography>
-                </Box>
-              </Box>
-              <Divider sx={{ my: 2 }} />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            p: 2.5,
-            gap: 1.5,
-            borderTop: "1px solid rgba(0,0,0,0.08)",
-            bgcolor: "rgba(0,0,0,0.01)",
-          }}
-        >
-          <Button
-            onClick={handleCloseAddTeamDialog}
-            variant="outlined"
-            size="small"
-            sx={{
-              px: 2,
-              borderRadius: "6px",
-              color: "text.secondary",
-              borderColor: "text.secondary",
-              textTransform: "none",
-              fontSize: "0.8rem",
-              "&:hover": {
-                borderColor: "text.primary",
-                bgcolor: "rgba(0,0,0,0.03)",
-              },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmitNewTeam}
-            variant="contained"
-            size="small"
-            className="!text-white"
-            disabled={!newTeamData.name || !newTeamData.sport}
-            sx={{
-              px: 2,
-              borderRadius: "6px",
-              textTransform: "none",
-              fontSize: "0.8rem",
-              background: "linear-gradient(to right, #1C7293, #065a82)",
-              "&:hover": {
-                background: "linear-gradient(to right, #065a82, #054c6a)",
-              },
-            }}
-          >
-            Add Team
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Add Event Dialog */}
+      <FormComponent
+        title="Add New Event"
+        isDialog={true}
+        open={addEventDialogOpen}
+        handleClose={handleCloseAddEventDialog}
+        onSubmit={handleSubmitNewEvent}
+        submitButtonText="Create Event"
+        initialValues={newEventData}
+        fields={[
+          {
+            name: "title",
+            label: "Event Title",
+            required: true,
+          },
+          {
+            name: "type",
+            label: "Event Type",
+            type: "select",
+            required: true,
+            options: [
+              { value: "practice", label: "Practice" },
+              { value: "game", label: "Game" },
+              { value: "tournament", label: "Tournament" },
+              { value: "meeting", label: "Meeting" },
+              { value: "other", label: "Other" },
+            ],
+          },
+          {
+            name: "date",
+            label: "Event Date",
+            type: "date",
+            required: true,
+            width: 6,
+          },
+          {
+            name: "time",
+            label: "Event Time",
+            type: "time",
+            required: true,
+            width: 6,
+          },
+          {
+            name: "duration",
+            label: "Duration (minutes)",
+            type: "number",
+            width: 6,
+          },
+          {
+            name: "location",
+            label: "Location",
+            width: 6,
+          },
+          {
+            name: "teamId",
+            label: "Team",
+            type: "select",
+            required: true,
+            options: getCoachGroups().map(group => ({
+              value: group.id,
+              label: group.name
+            })),
+          },
+          {
+            name: "description",
+            label: "Description",
+            type: "textarea",
+            width: 12,
+          },
+        ]}
+      />
     </Container>
   );
 }

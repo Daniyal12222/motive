@@ -19,6 +19,8 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
+import FormComponent from '../components/FormComponent';
+
 
 function Schools() {
   const navigate = useNavigate();
@@ -125,13 +127,12 @@ function Schools() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (values) => {
     if (editSchool) {
       // Update existing school
       const updatedSchools = schools.map(school => 
         school.id === editSchool.id 
-          ? { ...school, ...formData } 
+          ? { ...school, ...values } 
           : school
       );
       setSchools(updatedSchools);
@@ -139,7 +140,7 @@ function Schools() {
       // Add new school
       const newSchool = {
         id: schools.length > 0 ? Math.max(...schools.map(s => s.id)) + 1 : 1,
-        ...formData
+        ...values
       };
       setSchools([...schools, newSchool]);
     }
@@ -151,6 +152,70 @@ function Schools() {
   const getSchoolCoachesCount = (schoolId) => {
     return coaches.filter(coach => coach.schoolId === schoolId).length;
   };
+ 
+  const getInitialValues = () => {
+    return {
+      name: editSchool?.name || '',
+      address: editSchool?.address || '',
+      city: editSchool?.city || '',
+      state: editSchool?.state || '',
+      zipCode: editSchool?.zipCode || '',
+      phone: editSchool?.phone || '',
+      email: editSchool?.email || ''
+    };
+  };
+
+  const formFields = [
+    {
+      name: 'name',
+      label: 'School Name',
+      type: 'text',
+      required: true,
+      width: 6
+    },
+    {
+      name: 'address',
+      label: 'Address',
+      type: 'text',
+      required: true,
+      width: 6
+    },
+    {
+      name: 'city',
+      label: 'City',
+      type: 'text',
+      required: true,
+      width: 6
+    },
+    {
+      name: 'state',
+      label: 'State',
+      type: 'text',
+      required: true,
+      width: 6
+    },
+    {
+      name: 'zipCode',
+      label: 'Zip Code',
+      type: 'text',
+      required: true,
+      width: 6
+    },
+    {
+      name: 'phone',
+      label: 'Phone',
+      type: 'text',
+      required: true,
+      width: 6
+    },
+    {
+      name: 'email',
+      label: 'Email',
+      type: 'email',
+      required: true,
+      width: 12
+    }
+  ];
 
   // Count groups associated with a school (via coaches)
   const getSchoolGroupsCount = (schoolId) => {
@@ -465,284 +530,72 @@ function Schools() {
       {/* Pagination */}
       <Box sx={{ 
         display: 'flex', 
-        flexDirection: isMobile ? 'column' : 'row', 
-        justifyContent: isMobile ? 'start' : 'end', 
-        alignItems: isMobile ? 'center' : 'center', 
-        mt: 1, 
-        gap: isMobile ? 1 : 0
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        mt: 2,
+        mb: 2,
+        gap: 2
       }}>
-        <TablePagination
-          rowsPerPageOptions={isMobile ? [5, 10] : [5, 10, 25, 50]}
-          component="div"
-          count={filteredSchools.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{
-            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
-              margin: 0,
-              fontSize: isMobile ? '0.7rem' : 'inherit',
-            },
-            '.MuiTablePagination-toolbar': {
-              pl: isMobile ? 0 : 1,
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-            },
-            '.MuiInputBase-root': {
-              marginRight: isMobile ? '0.5rem' : '2rem',
-              marginLeft: isMobile ? '0.5rem' : '0.5rem',
-            },
-            '.MuiTablePagination-actions': {
-              marginLeft: isMobile ? 0 : 2,
-            }
-          }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ mr: 1, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
+            Rows per page:
+          </Typography>
+          <Select
+            value={rowsPerPage}
+            onChange={handleChangeRowsPerPage}
+            size="small"
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+          >
+            {[5, 10, 25].map((option) => (
+              <MenuItem key={option} value={option} sx={{ fontSize: '0.875rem' }}>
+                {option}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <IconButton 
+            onClick={(e) => handleChangePage(e, page - 1)} 
+            disabled={page === 0}
+            size="small"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+          </IconButton>
+          
+          <Typography sx={{ mx: 2, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
+            {`${page * rowsPerPage + 1}-${Math.min((page + 1) * rowsPerPage, filteredSchools.length)} of ${filteredSchools.length}`}
+          </Typography>
+          
+          <IconButton 
+            onClick={(e) => handleChangeRowsPerPage(e)} 
+            disabled={page >= Math.ceil(filteredSchools.length / rowsPerPage) - 1}
+            size="small"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+            </svg>
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Add/Edit School Dialog */}
-      <Dialog 
-        open={open} 
-        onClose={handleClose} 
-        maxWidth="sm" 
-        fullWidth
-        fullScreen={isMobile}
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            boxShadow: 8,
-            bgcolor: '#fafdff',
-            borderLeft: '8px solid #1C7293',
-            p: 0,
-            overflow: 'visible',
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: -3 }}>
-          <Avatar sx={{ bgcolor: '#1C7293', width: 64, height: 64, boxShadow: 3, mb: 1 }}>
-            <SchoolIcon sx={{ fontSize: 36, color: 'white' }} />
-          </Avatar>
-        </Box>
-        <DialogTitle sx={{ 
-          textAlign: 'center', 
-          bgcolor: 'transparent', 
-          color: '#1C7293',
-          fontWeight: 700,
-          fontSize: isMobile ? '1.25rem' : '1.5rem',
-          letterSpacing: 1,
-          py: isMobile ? 1.5 : 2,
-          mb: -2
-        }}>
-          {editSchool ? 'Edit School' : 'Add New School'}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontSize: '1.2rem', fontWeight: 'bold', textAlign: 'center' , mb: 2, backgroundColor: '#1C7293', color: 'white' }}>
+          {editSchool ? "Edit School" : "Add New School"}
         </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center',
-            justifyContent: 'center',
-            px: isMobile ? 2 : 6,
-            pt: isMobile ? 4 : 6,
-            pb: isMobile ? 2 : 4,
-            width: '100%',
-            maxWidth: 600,
-            mx: 'auto',
-            bgcolor: 'transparent',
-            borderRadius: 3,
-            boxShadow: 'none',
-            gap: 2,
-            maxHeight: isMobile ? 'calc(100dvh - 180px)' : 'calc(100vh - 220px)',
-            overflowY: 'auto',
-            "&::-webkit-scrollbar": {
-              width: "8px",
-              height: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              backgroundColor: "#f1f1f1",
-              borderRadius: "10px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "#1C7293",
-              borderRadius: "10px",
-            },
-            "&::-webkit-scrollbar-thumb:hover": {
-              backgroundColor: "#14576F",
-            },
-          }}>
-            <Grid container spacing={isMobile ? 2 : 3} sx={{ maxWidth: '100%',
-            mt: 18, }}>
-              <Grid item xs={12}>
-                <TextField
-                  autoFocus
-                  name="name"
-                  label="School Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  fullWidth
-                  required
-                  margin="normal"
-                  variant="outlined"
-                  helperText="Enter the school's name"
-                  placeholder="Westview High School"
-                  InputProps={{
-                    sx: { borderRadius: 2, bgcolor: 'white', fontWeight: 400, fontSize: '1rem', boxShadow: 1 }
-                  }}
-                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  name="address"
-                  label="Address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText="Street address"
-                  placeholder="123 Main St"
-                  InputProps={{
-                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
-                  }}
-                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="city"
-                  label="City"
-                  value={formData.city}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText="City name"
-                  placeholder="San Diego"
-                  InputProps={{
-                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
-                  }}
-                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
-                />
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <TextField
-                  name="state"
-                  label="State"
-                  value={formData.state}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText="State abbreviation"
-                  placeholder="CA"
-                  InputProps={{
-                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
-                  }}
-                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
-                />
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <TextField
-                  name="zipCode"
-                  label="Zip Code"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText="5-digit zip code"
-                  placeholder="92101"
-                  InputProps={{
-                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
-                  }}
-                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  name="phone"
-                  label="Phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText="Phone number"
-                  placeholder="(123) 456-7890"
-                  InputProps={{
-                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
-                  }}
-                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  name="email"
-                  label="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  helperText="Email address"
-                  placeholder="example@school.com"
-                  InputProps={{
-                    sx: { borderRadius: 2, bgcolor: 'white', fontSize: '1rem', boxShadow: 1 }
-                  }}
-                  InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#1C7293' } }}
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 0 }}>
-            <DialogActions sx={{ 
-              bgcolor: 'transparent', 
-              display: 'flex', 
-              justifyContent: 'center', 
-              py: isMobile ? 1.5 : 2,
-              flexDirection: isMobile ? 'column' : 'row',
-              gap: isMobile ? 1 : 2,
-              px: isMobile ? 2 : 3,
-              borderTop: '1px solid #e3e8ee',
-              width: '100%',
-              position: 'relative',
-              bottom: 0,
-              zIndex: 2
-            }}>
-              <Button 
-                onClick={handleClose}
-                fullWidth={isMobile}
-                variant={isMobile ? "outlined" : "text"}
-                sx={{
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  color: '#1C7293',
-                  borderColor: '#1C7293',
-                  bgcolor: isMobile ? 'white' : 'transparent',
-                  '&:hover': { bgcolor: '#e3f2fd', borderColor: '#14576F', color: '#14576F' }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                variant="contained" 
-                color="primary"
-                fullWidth={isMobile}
-                sx={{
-                  borderRadius: 2,
-                  fontWeight: 700,
-                  bgcolor: '#1C7293',
-                  color: 'white',
-                  boxShadow: 2,
-                  '&:hover': { bgcolor: '#14576F' }
-                }}
-              >
-                {editSchool ? 'Save Changes' : 'Add School'}
-              </Button>
-            </DialogActions>
-          </Box>
-        </form>
+        <DialogContent>
+          
+      <FormComponent
+        fields={formFields}
+        onSubmit={handleSubmit}
+        submitButtonText={editSchool ? "Update" : "Add"}
+        initialValues={getInitialValues()}
+        handleClose={handleClose}
+      />  
+        </DialogContent>
       </Dialog>
     </div>
   );

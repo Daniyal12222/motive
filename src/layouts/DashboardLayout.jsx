@@ -221,8 +221,8 @@ function DashboardLayout() {
             </Box>
           </Toolbar>
         </AppBar>
-        <Box className="flex-1 overflow-y-auto p-3 bg-[#9EB3C2]">
-          <div className="max-w-7xl py-3 mx-auto min-h-[calc(100vh-100px)] md:h-auto bg-white rounded">
+        <Box className="flex-1 xl:w-full overflow-y-auto p-3 bg-[#9EB3C2]">
+          <div className="w-full py-3 mx-auto min-h-[calc(100vh-100px)] md:h-auto bg-white rounded">
             <Outlet />
           </div>
         </Box>
